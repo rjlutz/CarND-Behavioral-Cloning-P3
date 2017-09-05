@@ -25,7 +25,9 @@ def add_driving_data(path, images, measurements):
         # create adjusted steering measurements for the side camera images
         steering_left = steering_center + correction
         steering_right = steering_center - correction
-        if line[4] != 0: # steering info unhelpful if throttle is 0
+        ##if line[4] != 0: # steering info unhelpful if throttle is 0
+        ##if float(line[4]) < 0.001 or (steering_center < 0.01 and randint(0,100) < 10):
+        if True:
             # add image and angle 
             image_center = cv2.imread(path + '/IMG/' + filenames[0])
             if randint(0,100) > 50:
@@ -43,12 +45,9 @@ def add_driving_data(path, images, measurements):
             measurements.append(steering_right)
     return (images, measurements)
 
-
 images, measurements = add_driving_data('./data/dataCCW', [], [])
 images, measurements = add_driving_data('./data/dataCW', images, measurements)
 images, measurements = add_driving_data('./data/dataPractice', images, measurements)
-#images, measurements = add_driving_data('./data/dataProvided', images, measurements)
-
 
 X_train = np.array(images)
 y_train = np.array(measurements)
@@ -74,32 +73,29 @@ from keras.layers.pooling import MaxPooling2D
 
 # NVIDIA
 model = Sequential()
-model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=(160,320,3))) # normalize and mean center
+model.add(Lambda(lambda x: x / 127.5 - 1.0, input_shape=(160,320,3))) # normalize and mean center
 model.add(Cropping2D(cropping=((70,25),(0,0))))
-model.add(Convolution2D(24,5,5,subsample=(2,2)))
-model.add(ELU())
+
+model.add(Convolution2D(24,5,5,subsample=(2,2),activation="relu"))
 model.add(Dropout(0.5))
 
-model.add(Convolution2D(36,5,5,subsample=(2,2)))
-model.add(ELU())
+model.add(Convolution2D(36,5,5,subsample=(2,2),activation="relu"))
 model.add(Dropout(0.5))
 
-model.add(Convolution2D(48,3,3,subsample=(2,2)))
-model.add(ELU())
+model.add(Convolution2D(48,5,5,subsample=(2,2),activation='relu'))
 model.add(Dropout(0.5))
 
-model.add(Convolution2D(64,3,3,subsample=(2,2)))
-model.add(ELU())
+model.add(Convolution2D(64,3,3,activation='relu'))
+model.add(Dropout(0.5))
+
+model.add(Convolution2D(64,3,3,activation='relu'))
 model.add(Dropout(0.5))
 
 model.add(Flatten())
 
 model.add(Dense(100))
-model.add(ELU())
 model.add(Dense(50))
-model.add(ELU())
 model.add(Dense(10))
-model.add(ELU())
 model.add(Dense(1))
 model.summary()
 
