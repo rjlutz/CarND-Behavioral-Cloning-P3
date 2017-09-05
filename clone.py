@@ -1,6 +1,7 @@
 import csv
 import cv2
 import numpy as np
+from random import randint
 
 def add_driving_data(path, images, measurements):
    
@@ -15,6 +16,7 @@ def add_driving_data(path, images, measurements):
         for line in reader:
             lines.append(line)
     for line in lines:
+        ##print(line);
         filenames = []
         filenames.append(line[0].split('/')[-1])
         filenames.append(line[1].split('/')[-1])
@@ -26,23 +28,26 @@ def add_driving_data(path, images, measurements):
         if line[4] != 0: # steering info unhelpful if throttle is 0
             # add image and angle 
             image_center = cv2.imread(path + '/IMG/' + filenames[0])
-            images.append(image_center)
-            measurements.append(steering_center)
+            if randint(0,100) > 50:
+                images.append(image_center)
+                measurements.append(steering_center)
+            else:
+                # flip the center image, reverse the angle
+                images.append(np.fliplr(image_center))
+                measurements.append(-steering_center)
             image_left = cv2.imread(path + '/IMG/' + filenames[1])
             images.append(image_left)
             measurements.append(steering_left)
             image_right = cv2.imread(path + '/IMG/' + filenames[2])
             images.append(image_right)
             measurements.append(steering_right)
-            # flip the center image, reverse the angle and add these too
-            images.append(np.fliplr(image_center))
-            measurements.append(-steering_center)
     return (images, measurements)
+
 
 images, measurements = add_driving_data('./data/dataCCW', [], [])
 images, measurements = add_driving_data('./data/dataCW', images, measurements)
-images, measurements = add_driving_data('./data/dataRecovery', images, measurements)
-images, measurements = add_driving_data('./data/dataProvided', images, measurements)
+images, measurements = add_driving_data('./data/dataPractice', images, measurements)
+#images, measurements = add_driving_data('./data/dataProvided', images, measurements)
 
 
 X_train = np.array(images)
@@ -83,6 +88,6 @@ model.add(Dense(10))
 model.add(Dense(1))
 
 model.compile(loss='mse', optimizer='adam')
-model.fit(X_train, y_train, validation_split=0.20, shuffle=True, nb_epoch=3)
+model.fit(X_train, y_train, validation_split=0.20, shuffle=True, nb_epoch=5)
 
 model.save('model.h5')
