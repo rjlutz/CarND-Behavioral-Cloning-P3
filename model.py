@@ -47,8 +47,9 @@ def add_driving_data(path, images, measurements):
 
 images, measurements = add_driving_data('./data/lake-dataCCW', [], [])
 images, measurements = add_driving_data('./data/lake-dataCW', images, measurements)
-images, measurements = add_driving_data('./data/jungle-dataCCW', images, measurements)
+## images, measurements = add_driving_data('./data/jungle-dataCCW', images, measurements)
 images, measurements = add_driving_data('./data/lake-dirtroad-turn-repetitive', images, measurements)
+images, measurements = add_driving_data('./data/data-corrections', images, measurements)
 
 
 X_train = np.array(images)
