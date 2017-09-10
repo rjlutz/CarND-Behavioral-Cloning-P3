@@ -4,7 +4,7 @@ import numpy as np
 from random import randint
 
 def add_driving_data(path, images, measurements):
-   
+
     lines = []
     # 0.1 = 0.043 radians, according to
     # https://hoganengineering.wixsite.com/randomforest/ \
@@ -28,7 +28,7 @@ def add_driving_data(path, images, measurements):
         ##if line[4] != 0: # steering info unhelpful if throttle is 0
         ##if float(line[4]) < 0.001 or (steering_center < 0.01 and randint(0,100) < 10):
         if True:
-            # add image and angle 
+            # add image and angle
             image_center = cv2.imread(path + '/IMG/' + filenames[0])
             if randint(0,100) > 50:
                 images.append(image_center)
@@ -45,9 +45,9 @@ def add_driving_data(path, images, measurements):
             measurements.append(steering_right)
     return (images, measurements)
 
-images, measurements = add_driving_data('./data/dataCCW', [], [])
-images, measurements = add_driving_data('./data/dataCW', images, measurements)
-images, measurements = add_driving_data('./data/dataPractice', images, measurements)
+images, measurements = add_driving_data('./data/lake-dataCCW', [], [])
+images, measurements = add_driving_data('./data/lake-dataCW', images, measurements)
+images, measurements = add_driving_data('./data/jungle-dataCCW', images, measurements)
 
 X_train = np.array(images)
 y_train = np.array(measurements)
