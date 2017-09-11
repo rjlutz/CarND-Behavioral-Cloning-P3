@@ -112,19 +112,19 @@ model.add(Dense(1))
 model.summary()
 
 model.compile(loss='mse', optimizer='adam')
-history = model.fit(X_train, y_train, validation_split=0.20, shuffle=True, nb_epoch=5, \
+history_object = model.fit(X_train, y_train, validation_split=0.20, shuffle=True, nb_epoch=5, \
     verbose=1)
 
-print(history.history.keys())
+model.save('model.h5')
+
+print(history_object.history.keys())
 
 ### plot the training and validation loss for each epoch
-plt.plot(history.history['loss'])
-plt.plot(history.history['val_loss'])
+plt.plot(history_object.history['loss'])
+plt.plot(history_object.history['val_loss'])
 plt.title('model mean squared error loss')
 plt.ylabel('mean squared error loss')
 plt.xlabel('epoch')
 plt.legend(['training set', 'validation set'], loc='upper right')
 fig = plt.figure()
 fig.savefig("training_loss.png")
-
-model.save('model.h5')
