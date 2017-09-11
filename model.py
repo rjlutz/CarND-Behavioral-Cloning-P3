@@ -33,7 +33,8 @@ def add_driving_data(path, images, measurements):
 
             # add image and angle
             image_center = cv2.imread(path + '/IMG/' + filenames[0])
-            if randint(0,100) > 50:
+            ##if randint(0,100) > 50:
+            if True:
                 images.append(image_center)
                 measurements.append(steering_center)
             else:
