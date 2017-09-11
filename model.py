@@ -2,6 +2,7 @@ import csv
 import cv2
 import numpy as np
 from random import randint
+import matplotlib.pyplot as plt
 
 def add_driving_data(path, images, measurements):
 
@@ -33,31 +34,32 @@ def add_driving_data(path, images, measurements):
 
             # add image and angle
             image_center = cv2.imread(path + '/IMG/' + filenames[0])
-            ##if randint(0,100) > 50:
-            if True:
-                images.append(image_center)
-                measurements.append(steering_center)
-            else:
-                # flip the center image, reverse the angle
-                images.append(np.fliplr(image_center))
-                measurements.append(-steering_center)
+            images.append(image_center)
+            measurements.append(steering_center)
+            images.append(np.fliplr(image_center)) # flip the center image, reverse angle
+            measurements.append(-steering_center)
+
             image_left = cv2.imread(path + '/IMG/' + filenames[1])
             images.append(image_left)
             measurements.append(steering_left)
+            images.append(np.fliplr(image_left)) # flip the left image, reverse angle
+            measurements.append(-steering_left)
+
             image_right = cv2.imread(path + '/IMG/' + filenames[2])
             images.append(image_right)
             measurements.append(steering_right)
+            images.append(np.fliplr(image_right)) # flip the right image, reverse angle
+            measurements.append(-steering_right)
+
     return (images, measurements)
 
 images, measurements = add_driving_data('./data/lake-dataCCW', [], [])
-## images, measurements = add_driving_data('./data/lake-dataCW', images, measurements)
+images, measurements = add_driving_data('./data/lake-dataCW', images, measurements)
 ## images, measurements = add_driving_data('./data/jungle-dataCCW', images, measurements)
 images, measurements = add_driving_data('./data/lake-dirtroad-turn-repetitive', images, measurements)
 images, measurements = add_driving_data('./data/lake-firstturn-repetitive', images, measurements)
-images, measurements = add_driving_data('./data/lake-firstturn-repetitive', images, measurements)
 images, measurements = add_driving_data('./data/data-corrections', images, measurements)
 images, measurements = add_driving_data('./data/data-CCW-AJL', images, measurements)
-
 
 X_train = np.array(images)
 y_train = np.array(measurements)
@@ -110,6 +112,19 @@ model.add(Dense(1))
 model.summary()
 
 model.compile(loss='mse', optimizer='adam')
-model.fit(X_train, y_train, validation_split=0.20, shuffle=True, nb_epoch=5)
+history = model.fit(X_train, y_train, validation_split=0.20, shuffle=True, nb_epoch=5, \
+    verbose=1)
+
+print(history.history.keys())
+
+### plot the training and validation loss for each epoch
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.title('model mean squared error loss')
+plt.ylabel('mean squared error loss')
+plt.xlabel('epoch')
+plt.legend(['training set', 'validation set'], loc='upper right')
+fig = plt.figure()
+fig.savefig("training_loss.png")
 
 model.save('model.h5')
