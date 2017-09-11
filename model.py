@@ -25,9 +25,12 @@ def add_driving_data(path, images, measurements):
         # create adjusted steering measurements for the side camera images
         steering_left = steering_center + correction
         steering_right = steering_center - correction
-        ##if line[4] != 0: # steering info unhelpful if throttle is 0
-        ##if float(line[4]) < 0.001 or (steering_center < 0.01 and randint(0,100) < 10):
+        ## print("steering center {}".format(steering_center))
+        # steering info unhelpful if throttle is 0
+        ##if not (float(line[4]) < 0.001) and  \
+        ##    not (abs(steering_center) < 0.001 and randint(0,100) < 30):
         if True:
+
             # add image and angle
             image_center = cv2.imread(path + '/IMG/' + filenames[0])
             if randint(0,100) > 50:
@@ -46,9 +49,10 @@ def add_driving_data(path, images, measurements):
     return (images, measurements)
 
 images, measurements = add_driving_data('./data/lake-dataCCW', [], [])
-images, measurements = add_driving_data('./data/lake-dataCW', images, measurements)
+## images, measurements = add_driving_data('./data/lake-dataCW', images, measurements)
 ## images, measurements = add_driving_data('./data/jungle-dataCCW', images, measurements)
 images, measurements = add_driving_data('./data/lake-dirtroad-turn-repetitive', images, measurements)
+images, measurements = add_driving_data('./data/lake-firstturn-repetitive', images, measurements)
 images, measurements = add_driving_data('./data/lake-firstturn-repetitive', images, measurements)
 images, measurements = add_driving_data('./data/data-corrections', images, measurements)
 images, measurements = add_driving_data('./data/data-CCW-AJL', images, measurements)
