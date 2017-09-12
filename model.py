@@ -5,7 +5,8 @@ import random
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import sys;
+import pandas as pd
+import sys
 
 def add_driving_data(path, total_list):
 
@@ -57,14 +58,24 @@ def add_driving_data(path, total_list):
 fnames = []
 fnames.extend(['./data/lake-dataCCW', './data/data-CCW-AJL']);
 fnames.extend(['./data/data-corrections'])
-for i in range(4): ## amplify dirt road data, adding some minor jitter each time
-    fnames.extend(['./data/lake-dirtroad-turn-repetitive'])
-##fnames.extend(['./data/lake-firstturn-repetitive', './data/lake-dataCW'])
+fnames.extend(['./data/lake-firstturn-repetitive', './data/lake-dataCW'])
 ##fnames.append(['./data/jungle-dataCCW'])
 
 observations = []
 for f in fnames:
     observations = add_driving_data(f, observations)
+
+## add and amplify dirt road data, adding some minor jitter each time
+turns_list = []
+turns_file = './data/lake-dirtroad-turn-repetitive'
+dirt_road_data = pd.read_csv(turns_file, header=0)
+turns_list.columns = ["c_image", "l_image", "r_image", "steering", "throttle", "brake", "speed"]
+for i in range(4):
+    steer = dirt_road_data[3][i] * (1.0 + np.random.uniform(-1, 1) / 100.0)
+    turns_list.append([dirt_road_data["c_image"][i], dirt_road_data["l_image"][i], \
+                       dirt_road_data["r_image"][i], steer])
+
+observations += turns_list
 
 random.shuffle(observations)
 
@@ -147,7 +158,7 @@ def train_generator(samples, batch_size=batch_size):
                     dsteering = dx / (rows / 2) * 360 / (2 * np.pi * 25.0) / 10.0
                     M = cv2.getAffineTransform(pts1, pts2)
                     shear_image = cv2.warpAffine(center_image, M, (cols, rows), borderMode=1)
-                    shear_angle = select_angle + dsteering
+                    shear_angle = angle + dsteering
                     images.append(shear_image)
                     angles.append(shear_angle)
 
