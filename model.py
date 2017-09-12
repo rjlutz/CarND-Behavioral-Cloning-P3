@@ -67,11 +67,11 @@ for f in fnames:
 
 ## add and amplify dirt road data, adding some minor jitter each time
 turns_list = []
-turns_file = './data/lake-dirtroad-turn-repetitive'
+turns_file = './data/lake-dirtroad-turn-repetitive/' + 'driving_log.csv'
 dirt_road_data = pd.read_csv(turns_file, header=0)
 dirt_road_data.columns = ["c_image", "l_image", "r_image", "steering", "throttle", "brake", "speed"]
 for i in range(4):
-    steer = dirt_road_data[3][i] * (1.0 + np.random.uniform(-1, 1) / 100.0)
+    steer = dirt_road_data["steering"][i] * (1.0 + np.random.uniform(-1, 1) / 100.0)
     turns_list.append([dirt_road_data["c_image"][i], dirt_road_data["l_image"][i], \
                        dirt_road_data["r_image"][i], steer])
 
