@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import random
 import matplotlib.pyplot as plt
+matplotlib.use('Agg')
 import sys;
 
 def add_driving_data(path, images, measurements):
@@ -69,7 +70,7 @@ def add_driving_data(path, images, measurements):
         image_left = cv2.imread(path + '/IMG/' + filenames[1])
         images.append(image_left)
         measurements.append(steering_left)
- 
+
         # flip the right image, reverse angle
         image_right = cv2.imread(path + '/IMG/' + filenames[2])
         images.append(image_right)
@@ -80,7 +81,7 @@ def add_driving_data(path, images, measurements):
 fnames = []
 fnames.extend(['./data/lake-dataCCW', './data/data-CCW-AJL']);
 fnames.extend(['./data/data-corrections'])
-for i in range(4):
+for i in range(4): ## amplify dirt road data, adding some minor jitter each time
     fnames.extend(['./data/lake-dirtroad-turn-repetitive'])
 ##fnames.extend(['./data/lake-firstturn-repetitive', './data/lake-dataCW'])
 ##fnames.append(['./data/jungle-dataCCW'])
