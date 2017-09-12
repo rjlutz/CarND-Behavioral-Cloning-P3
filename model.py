@@ -2,9 +2,10 @@ import csv
 import cv2
 import numpy as np
 import random
-import matplotlib.pyplot as plt
+import matplotlib
 matplotlib.use('Agg')
-import sys;
+import matplotlib.pyplot as plt
+##import sys;
 
 def add_driving_data(path, images, measurements):
 
