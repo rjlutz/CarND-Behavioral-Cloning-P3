@@ -10,9 +10,6 @@ import sys;
 def add_driving_data(path, total_list):
 
     lines = []
-    # 0.1 = 0.043 radians, according to
-    # https://hoganengineering.wixsite.com/randomforest/ \
-    #         single-post/2017/03/13/Alright-Squares-Lets-Talk-Triangles
 
     straight_list = []
     left_list = []
@@ -42,19 +39,19 @@ def add_driving_data(path, total_list):
 
         ## Straightest steering - undersample by 20%
         if (abs(steering_center) < 0.02 and random.random() <= 0.80):
-            straight_list.append([path[0], path[1], path[2], steering_center])
+            straight_list.append([paths[0], paths[1], paths[2], steering_center])
         # right turning, duplicate and tweak a little
         if (steering_center >0.2 and steering_center <=0.5):
             tweak = np.random.uniform(-1,1)/100.0
-            right_list.append([path[0], path[1], path[2], steering_center])
-            right_list.append([path[0], path[1], path[2], steering_center * (1.0 + tweak)])
+            right_list.append([paths[0], paths[1], paths[2], steering_center])
+            right_list.append([paths[0], paths[1], paths[2], steering_center * (1.0 + tweak)])
         # left turning, dup and tweak
         elif (steering_center >= -0.5 and steering_center < -0.2):
             tweak = np.random.uniform(-1,1)/100.0
-            left_list.append([path[0], path[1], path[2], steering_center])
-            left_list.append([path[0], path[1], path[2], steering_center * (1.0 + tweak)])
+            left_list.append([paths[0], paths[1], paths[2], steering_center])
+            left_list.append([paths[0], paths[1], paths[2], steering_center * (1.0 + tweak)])
         else: ## values between +/- (.02, .2) OR greater than +/- 0.5
-            straight_list.append([path[0], path[1], path[2], steering_center]);
+            straight_list.append([paths[0], paths[1], paths[2], steering_center]);
 
     total_list += straight_list + left_list + right_list
     print ("Straight/Left/Right/Running Total = {} {} {} {}".format( \
@@ -78,15 +75,15 @@ random.shuffle(observations)
 from sklearn.model_selection import train_test_split
 train_observations, validation_observations = train_test_split(observations, test_size=0.20)
 
-print("Training/Validation Observations {} {}".format(len(train_observations), \
-      len(validation_observations)))
+print("Training/Validation/Total Observations {} {} {}".format(len(train_observations), \
+      len(validation_observations), len(train_observations) + len(validation_observations)))
 
 batch_size = 128;
 
 # Start with train generator shared in the class and add image augmentations
 def train_generator(samples, batch_size=batch_size):
     num_samples = len(samples)
-    while True: # Loop forever so the generator never terminates
+    while True: # Loop forever
         from sklearn.utils import shuffle
         shuffle(samples)
         for offset in range(0, num_samples, batch_size):
@@ -96,13 +93,13 @@ def train_generator(samples, batch_size=batch_size):
             angles = []
             # Read center, left and right images from a folder containing Udacity data and my data
             for batch_sample in batch_samples:
-                center_name = batch_sample[0].split('/')[-1]
+                center_name = batch_sample[0]
                 center_image = cv2.imread(center_name)
                 ##center_image = cv2.cvtColor(center_image, cv2.COLOR_BGR2RGB)
-                left_name = batch_sample[1].split('/')[-1]
+                left_name = batch_sample[1]
                 left_image = cv2.imread(left_name)
                 ##left_image = cv2.cvtColor(left_image, cv2.COLOR_BGR2RGB)
-                right_name = batch_sample[2].split('/')[-1]
+                right_name = batch_sample[2]
                 right_image = cv2.imread(right_name)
                 ##right_image = cv2.cvtColor(right_image, cv2.COLOR_BGR2RGB)
 
@@ -112,6 +109,9 @@ def train_generator(samples, batch_size=batch_size):
                 correction = 0.2; # parameter to tune
 
                 # create adjusted steering measurements for the side camera images
+                # 0.1 = 0.043 radians, according to
+                # https://hoganengineering.wixsite.com/randomforest/ \
+                #         single-post/2017/03/13/Alright-Squares-Lets-Talk-Triangles
                 steering_left = steering_center + correction
                 steering_right = steering_center - correction
 
@@ -122,18 +122,16 @@ def train_generator(samples, batch_size=batch_size):
                     angle = steering_center
                 elif num>0.33 and num<=0.66:
                     image = left_image
-                    angle = left_angle
+                    angle = steering_left
                 else:
                     image = right_image
-                    angle = right_angle
+                    angle = steering_right
 
                 images.append(image)
                 angles.append(angle)
 
                 # Randomly copy and flip selected images horizontally, with 75% probability
-                if random.random() >0.25:
-                    ##flip_image = np.fliplr(image)
-                    ##flip_angle = -1*angle
+                if random.random() <= 0.75:
                     images.append(np.fliplr(image))
                     angles.append(-angle)
 
@@ -168,7 +166,6 @@ def train_generator(samples, batch_size=batch_size):
                 #     images.append(shear_image)
                 #     angles.append(shear_angle)
 
-            # trim image to only see section with road
             X_train = np.array(images)
             y_train = np.array(angles)
 
@@ -187,35 +184,8 @@ def valid_generator(samples, batch_size=batch_size):
 
                 #Validation generator only has center images and no augmentations
                 for batch_sample in batch_samples:
-                    center_name = '/home/animesh/Documents/CarND/CarND-Behavioral-Cloning-P3/data2/IMG/' + batch_sample[0].split('/')[-1]
-                    center_image = cv2.imread(center_name)
-                    center_image = cv2.cvtColor(center_image, cv2.COLOR_BGR2RGB)
-
-                    center_angle = float(batch_sample[3])
-
-                    images.append(center_image)
-                    angles.append(center_angle)
-
-                X_train = np.array(images)
-                y_train = np.array(angles)
-
-                yield shuffle(X_train, y_train)
-
-def valid_generator(samples, batch_size=batch_size):
-        num_samples = len(samples)
-        while True:  # Loop forever so the generator never terminates
-            from sklearn.utils import shuffle
-            shuffle(samples)
-            for offset in range(0, num_samples, batch_size):
-                batch_samples = samples[offset:offset + batch_size]
-
-                images = []
-                angles = []
-
-                #center images only
-                for batch_sample in batch_samples:
                     ##center_image = cv2.cvtColor(center_image, cv2.COLOR_BGR2RGB)
-                    images.append(cv2.imread(center_name))
+                    images.append(cv2.imread(batch_sample[0]))
                     angles.append(float(batch_sample[3]))
 
                 X_train = np.array(images)
@@ -223,45 +193,73 @@ def valid_generator(samples, batch_size=batch_size):
 
                 yield shuffle(X_train, y_train)
 
+
 train_generator = train_generator(train_observations, batch_size=batch_size)
 validation_generator = valid_generator(validation_observations, batch_size=batch_size)
 
 from keras.models import Sequential
-from keras.layers import Flatten, Dense, Lambda, Cropping2D, ELU, Dropout
-from keras.layers.convolutional import Convolution2D
-from keras.layers.pooling import MaxPooling2D
+from keras.layers import Flatten, Dense, Lambda, Cropping2D, ELU, Dropout, Activation
+from keras.layers.convolutional import Convolution2D, Cropping2D, ZeroPadding2D, MaxPooling2D
+from keras.optimizers import Adam
 
-# NVIDIA
+# Function to resize image to 64x64
+def resize_image(image):
+    import tensorflow as tf
+    return tf.image.resize_images(image,[40,60])
+
+
+#Params
+row, col, ch = 160, 320, 3
+nb_classes = 1
+
 model = Sequential()
-model.add(Lambda(lambda x: x / 127.5 - 1.0, input_shape=(160,320,3))) # normalize and mean center
-model.add(Cropping2D(cropping=((70,25),(0,0))))
+model.add(ZeroPadding2D((1, 1), input_shape=(row, col, ch)))
+# Crop pixels from top and bottom of image
+model.add(Cropping2D(cropping=((60, 20), (0, 0))))
 
-model.add(Convolution2D(24,5,5,subsample=(2,2),activation="relu"))
-model.add(Convolution2D(36,5,5,subsample=(2,2),activation="relu"))
-model.add(Convolution2D(48,5,5,subsample=(2,2),activation='relu'))
-model.add(Convolution2D(64,3,3,activation='relu'))
-model.add(Convolution2D(64,3,3,activation='relu'))
+# Resise data within the neural network
+model.add(Lambda(resize_image))
+# Normalize data
+model.add(Lambda(lambda x: (x / 127.5 - 1.)))
+
+# First convolution layer so the model can automatically figure out the best color space for the hypothesis
+model.add(Convolution2D(3, 1, 1, border_mode='same', name='color_conv'))
+
+# CNN model
+
+model.add(Convolution2D(32, 3,3 ,border_mode='same', subsample=(2,2), name='conv1'))
+model.add(Activation('relu'))
+model.add(MaxPooling2D(pool_size=(2,2),strides=(1,1), name='pool1'))
+
+model.add(Convolution2D(64, 3,3 ,border_mode='same',subsample=(2,2), name='conv2'))
+model.add(Activation('relu',name='relu2'))
+model.add(MaxPooling2D(pool_size=(2,2), name='pool2'))
+
+model.add(Convolution2D(128, 3,3,border_mode='same',subsample=(1,1), name='conv3'))
+model.add(Activation('relu'))
+model.add(MaxPooling2D(pool_size= (2,2), name='pool3'))
 
 model.add(Flatten())
 model.add(Dropout(0.5))
 
-model.add(Dense(100))
-model.add(Dense(50))
-model.add(Dense(10))
-model.add(Dense(1))
-model.summary()
+model.add(Dense(128, name='dense1'))
+model.add(Activation('relu'))
+model.add(Dropout(0.5))
 
-model.compile(loss='mse', optimizer='adam')
+model.add(Dense(128, name='dense2'))
+
+model.add(Dense(1,name='output'))
+
+model.compile(optimizer=Adam(lr= 0.0001), loss="mse")
 
 ## backstop
-sys.exit(0);
+##sys.exit(0);
 
 ##history_object = model.fit(X_train, y_train, validation_split=0.20, shuffle=True, nb_epoch=5, \
 ##    verbose=1)
 
 history_object = model.fit_generator(train_generator, samples_per_epoch=20000, \
      validation_data=validation_generator, nb_val_samples=2000, nb_epoch=5, verbose=1)
-
 
 model.save('model.h5')
 
