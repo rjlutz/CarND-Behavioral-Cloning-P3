@@ -32,7 +32,6 @@ def add_driving_data(path, images, measurements):
         image_center = cv2.imread(path + '/IMG/' + filenames[0])
 
         ## Straightest steering - undersample by 20%
-        images.append(image_center)
         if (abs(steering_center) < 0.02 and random.random() <= 0.80):
             if random.random() < 0.50:
                 images.append(image_center)
