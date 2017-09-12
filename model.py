@@ -69,7 +69,7 @@ def add_driving_data(path, images, measurements):
         image_left = cv2.imread(path + '/IMG/' + filenames[1])
         images.append(image_left)
         measurements.append(steering_left)
-
+ 
         # flip the right image, reverse angle
         image_right = cv2.imread(path + '/IMG/' + filenames[2])
         images.append(image_right)
