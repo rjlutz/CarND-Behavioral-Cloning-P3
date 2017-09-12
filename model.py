@@ -41,15 +41,19 @@ def add_driving_data(path, images, measurements):
                 measurements.append(-steering_center)
         # right turning, duplicate and tweak a little
         if (steering_center >0.2 and steering_center <=0.5):
+            images.append(image_center)
+            measurements.append(steering_center)
             tweak = np.random.uniform(-1,1)/100.0
             images.append(image_center)
             measurements.append(steering_center * (1.0 + tweak))
-        # left turning
+        # left turning, dup and tweak
         elif (steering_center >= -0.5 and steering_center < -0.2):
+            images.append(image_center)
+            measurements.append(steering_center)
             tweak = np.random.uniform(-1,1)/100.0
             images.append(image_center)
             measurements.append(steering_center * (1.0 + tweak))
-        else: ## calues between +/- (.02, .2) OR greater than +/- 0.5
+        else: ## values between +/- (.02, .2) OR greater than +/- 0.5
             images.append(image_center)
             measurements.append(steering_center)
 
