@@ -136,22 +136,20 @@ def train_generator(samples, batch_size=batch_size):
                 images.append(cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB))
                 angles.append(angle)
 
-                ## Randomly shear image with 80% probability
-                # shear_prob = random.random()
-                # if shear_prob >=0.20:
-                #     shear_range = 40
-                #     rows, cols, ch = select_image.shape
-                #     dx = np.random.randint(-shear_range, shear_range + 1)
-                #     #    print('dx',dx)
-                #     random_point = [cols / 2 + dx, rows / 2]
-                #     pts1 = np.float32([[0, rows], [cols, rows], [cols / 2, rows / 2]])
-                #     pts2 = np.float32([[0, rows], [cols, rows], random_point])
-                #     dsteering = dx / (rows / 2) * 360 / (2 * np.pi * 25.0) / 10.0
-                #     M = cv2.getAffineTransform(pts1, pts2)
-                #     shear_image = cv2.warpAffine(center_image, M, (cols, rows), borderMode=1)
-                #     shear_angle = select_angle + dsteering
-                #     images.append(shear_image)
-                #     angles.append(shear_angle)
+                # Randomly shear image with 80% probability
+                if random.random() >=0.20:
+                    shear_range = 40
+                    rows, cols, channels = image.shape
+                    dx = np.random.randint(-shear_range, shear_range + 1)
+                    random_point = [cols / 2 + dx, rows / 2]
+                    pts1 = np.float32([[0, rows], [cols, rows], [cols / 2, rows / 2]])
+                    pts2 = np.float32([[0, rows], [cols, rows], random_point])
+                    dsteering = dx / (rows / 2) * 360 / (2 * np.pi * 25.0) / 10.0
+                    M = cv2.getAffineTransform(pts1, pts2)
+                    shear_image = cv2.warpAffine(center_image, M, (cols, rows), borderMode=1)
+                    shear_angle = select_angle + dsteering
+                    images.append(shear_image)
+                    angles.append(shear_angle)
 
             X_train = np.array(images)
             y_train = np.array(angles)
