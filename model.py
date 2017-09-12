@@ -56,10 +56,12 @@ def add_driving_data(path, total_list):
     return total_list
 
 fnames = []
-fnames.extend(['./data/lake-dataCCW', './data/data-CCW-AJL']);
+fnames.extend(['./data/lake-dataCCW'])
+fnames.extend(['./data/data-CCW-AJL'])
+fnames.extend(['./data/lake-dataCW'])
 fnames.extend(['./data/data-corrections'])
-fnames.extend(['./data/lake-firstturn-repetitive', './data/lake-dataCW'])
-##fnames.append(['./data/jungle-dataCCW'])
+fnames.extend(['./data/lake-firstturn-repetitive'])
+##fnames.append(['./data/jungle-dataCCW'])([])
 
 observations = []
 for f in fnames:
@@ -205,11 +207,11 @@ def resize_image(image):
 
 
 #Params
-row, col, ch = 160, 320, 3
-nb_classes = 1
+##row, col, ch = 160, 320, 3
+##nb_classes = 1
 
 model = Sequential()
-model.add(ZeroPadding2D((1, 1), input_shape=(row, col, ch)))
+model.add(ZeroPadding2D((1, 1), input_shape=(160, 320, 3)))
 # Crop pixels from top and bottom of image
 model.add(Cropping2D(cropping=((60, 20), (0, 0))))
 
@@ -219,32 +221,32 @@ model.add(Lambda(resize_image))
 model.add(Lambda(lambda x: (x / 127.5 - 1.)))
 
 # First convolution layer so the model can automatically figure out the best color space for the hypothesis
-model.add(Convolution2D(3, 1, 1, border_mode='same', name='color_conv'))
+model.add(Convolution2D(3, 1, 1, border_mode='same'))
 
 # CNN model
 
-model.add(Convolution2D(32, 3,3 ,border_mode='same', subsample=(2,2), name='conv1'))
+model.add(Convolution2D(32, 3,3 ,border_mode='same', subsample=(2,2)))
 model.add(Activation('relu'))
-model.add(MaxPooling2D(pool_size=(2,2),strides=(1,1), name='pool1'))
+model.add(MaxPooling2D(pool_size=(2,2),strides=(1,1)))
 
-model.add(Convolution2D(64, 3,3 ,border_mode='same',subsample=(2,2), name='conv2'))
-model.add(Activation('relu',name='relu2'))
-model.add(MaxPooling2D(pool_size=(2,2), name='pool2'))
-
-model.add(Convolution2D(128, 3,3,border_mode='same',subsample=(1,1), name='conv3'))
+model.add(Convolution2D(64, 3,3 ,border_mode='same',subsample=(2,2)))
 model.add(Activation('relu'))
-model.add(MaxPooling2D(pool_size= (2,2), name='pool3'))
+model.add(MaxPooling2D(pool_size=(2,2)))
+
+model.add(Convolution2D(128, 3,3,border_mode='same',subsample=(1,1)))
+model.add(Activation('relu'))
+model.add(MaxPooling2D(pool_size= (2,2)))
 
 model.add(Flatten())
 model.add(Dropout(0.5))
 
-model.add(Dense(128, name='dense1'))
+model.add(Dense(128))
 model.add(Activation('relu'))
 model.add(Dropout(0.5))
 
-model.add(Dense(128, name='dense2'))
+model.add(Dense(128))
 
-model.add(Dense(1,name='output'))
+model.add(Dense(1))
 
 model.compile(optimizer=Adam(lr= 0.0001), loss="mse")
 
@@ -254,19 +256,20 @@ model.compile(optimizer=Adam(lr= 0.0001), loss="mse")
 ##history_object = model.fit(X_train, y_train, validation_split=0.20, shuffle=True, nb_epoch=5, \
 ##    verbose=1)
 
-history_object = model.fit_generator(train_generator, samples_per_epoch=20000, \
-     validation_data=validation_generator, nb_val_samples=2000, nb_epoch=5, verbose=1)
+history_object = model.fit_generator(train_generator, samples_per_epoch=10000, \
+     validation_data=validation_generator, nb_val_samples=2000, nb_epoch=8, verbose=1)
 
 model.save('model.h5')
 
 print(history_object.history.keys())
 
 ### plot the training and validation loss for each epoch
-plt.plot(history_object.history['loss'])
-plt.plot(history_object.history['val_loss'])
-plt.title('model mean squared error loss')
-plt.ylabel('mean squared error loss')
-plt.xlabel('epoch')
-plt.legend(['training set', 'validation set'], loc='upper right')
 fig = plt.figure()
+
+fig.plot(history_object.history['loss'])
+fig.plot(history_object.history['val_loss'])
+fig.title('model mean squared error loss')
+fig.ylabel('mean squared error loss')
+fig.xlabel('epoch')
+fig.legend(['training set', 'validation set'], loc='upper right')
 fig.savefig("training_loss.png")
