@@ -5,8 +5,6 @@ import random
 import matplotlib.pyplot as plt
 import sys;
 
-ioff();
-
 def add_driving_data(path, images, measurements):
 
     lines = []
@@ -125,6 +123,7 @@ model.save('model.h5')
 print(history_object.history.keys())
 
 ### plot the training and validation loss for each epoch
+plt.ioff()
 plt.plot(history_object.history['loss'])
 plt.plot(history_object.history['val_loss'])
 plt.title('model mean squared error loss')
