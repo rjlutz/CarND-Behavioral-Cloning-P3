@@ -5,6 +5,8 @@ import random
 import matplotlib.pyplot as plt
 import sys;
 
+ioff();
+
 def add_driving_data(path, images, measurements):
 
     lines = []
