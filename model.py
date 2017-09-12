@@ -57,7 +57,7 @@ def add_driving_data(path, images, measurements):
             images.append(image_center)
             measurements.append(steering_center)
 
-        # flip the lake-firstturn-repetitive image, reverse angle
+        # flip the left image, reverse angle
         image_left = cv2.imread(path + '/IMG/' + filenames[1])
         images.append(image_left)
         measurements.append(steering_left)
@@ -71,7 +71,9 @@ def add_driving_data(path, images, measurements):
 
 fnames = []
 fnames.extend(['./data/lake-dataCCW', './data/data-CCW-AJL']);
-fnames.extend(['./data/data-corrections', './data/lake-dirtroad-turn-repetitive'])
+fnames.extend(['./data/data-corrections'])
+for i in range(4):
+    fnames.extend(['./data/lake-dirtroad-turn-repetitive'])
 ##fnames.extend(['./data/lake-firstturn-repetitive', './data/lake-dataCW'])
 ##fnames.append(['./data/jungle-dataCCW'])
 
