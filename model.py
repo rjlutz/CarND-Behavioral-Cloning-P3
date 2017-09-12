@@ -135,19 +135,10 @@ def train_generator(samples, batch_size=batch_size):
                     images.append(np.fliplr(image))
                     angles.append(-angle)
 
-                # # Augment with images of different brightness
-                # # Randomly select a percent change
-                # change_pct = random.uniform(0.4, 1.2)
-                #
-                # # Change to HSV to change the brightness V
-                # hsv = cv2.cvtColor(select_image, cv2.COLOR_RGB2HSV)
-                #
-                # hsv[:, :, 2] = hsv[:, :, 2] * change_pct
-                # # Convert back to RGB and append
-                #
-                # bright_img = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
-                # images.append(bright_img)
-                # angles.append(select_angle)
+                hsv = cv2.cvtColor(select_image, cv2.COLOR_RGB2HSV) # Change to HSV
+                hsv[:, :, 2] = hsv[:, :, 2] * random.uniform(0.4, 1.2) # Convert back to RGB and append
+                images.append(cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB))
+                angles.append(angle)
 
                 ## Randomly shear image with 80% probability
                 # shear_prob = random.random()
