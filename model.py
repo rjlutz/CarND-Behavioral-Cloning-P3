@@ -9,12 +9,11 @@ import sys;
 
 def add_driving_data(path, total_list):
 
-    lines = []
-
     straight_list = []
     left_list = []
     right_list= []
 
+    lines = []
     with open(path + '/driving_log.csv') as csvfile:
         reader= csv.reader(csvfile);
         for line in reader:
@@ -33,9 +32,6 @@ def add_driving_data(path, total_list):
         paths.append(path + '/IMG/' + filenames[0]);
         paths.append(path + '/IMG/' + filenames[1]);
         paths.append(path + '/IMG/' + filenames[2]);
-        ##image_center = cv2.imread(paths[0])
-        ##image_left = cv2.imread(paths[1])
-        ##image_right = cv2.imread(paths[2])
 
         ## Straightest steering - undersample by 20%
         if (abs(steering_center) < 0.02 and random.random() <= 0.80):
@@ -135,7 +131,7 @@ def train_generator(samples, batch_size=batch_size):
                     images.append(np.fliplr(image))
                     angles.append(-angle)
 
-                hsv = cv2.cvtColor(select_image, cv2.COLOR_RGB2HSV) # Change to HSV
+                hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV) # Change to HSV
                 hsv[:, :, 2] = hsv[:, :, 2] * random.uniform(0.4, 1.2) # Convert back to RGB and append
                 images.append(cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB))
                 angles.append(angle)
