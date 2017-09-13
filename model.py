@@ -111,10 +111,13 @@ def train_generator(samples, batch_size=batch_size):
             for batch_sample in batch_samples:
                 center_image = cv2.cvtColor(cv2.imread(batch_sample[0]), \
                     cv2.COLOR_BGR2RGB)
+                print("center img = {} shape = {}".formatbatch_sample[0], center_image.shape)
                 left_image = cv2.cvtColor(cv2.imread(batch_sample[1]), \
                     cv2.COLOR_BGR2RGB)
+                print("left img = {} shape = {}".formatbatch_sample[1], left_image.shape)
                 right_image = cv2.cvtColor(cv2.imread(batch_sample[2]), \
                     cv2.COLOR_BGR2RGB)
+                print("right img = {} shape = {}".formatbatch_sample[2], right_image.shape)
                 # center_image = cv2.imread(batch_sample[0])
                 # left_image = cv2.imread(batch_sample[1])
                 # right_image = cv2.imread(batch_sample[2])
@@ -142,6 +145,8 @@ def train_generator(samples, batch_size=batch_size):
                 else:
                     image = right_image
                     angle = steering_right
+
+
 
                 images.append(image)
                 angles.append(angle)
