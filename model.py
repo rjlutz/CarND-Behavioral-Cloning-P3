@@ -26,8 +26,6 @@ def add_driving_data(path, total_list):
             filenames.append(line[i].split('/')[-1])
         steering_center = float(line[3])
 
-        # steering info unhelpful if throttle is 0, DEAL WITH THIS??
-
         # add images and angle
         paths = [];
         paths.append(path + '/IMG/' + filenames[0]);
@@ -56,7 +54,7 @@ def add_driving_data(path, total_list):
     return total_list
 
 fnames = []
-##fnames.extend(['./data/lake-dataCCW'])
+fnames.extend(['./data/lake-dataCCW'])
 fnames.extend(['./data/data-CCW-AJL'])
 fnames.extend(['./data/lake-dataCW'])
 fnames.extend(['./data/data-corrections'])
@@ -109,18 +107,18 @@ def train_generator(samples, batch_size=batch_size):
             angles = []
             # Read center, left and right images from a folder containing Udacity data and my data
             for batch_sample in batch_samples:
-                center_image = cv2.cvtColor(cv2.imread(batch_sample[0]), \
-                    cv2.COLOR_BGR2RGB)
-                ##print("center img = {} shape = {}".format(batch_sample[0], center_image.shape))
-                left_image = cv2.cvtColor(cv2.imread(batch_sample[1]), \
-                    cv2.COLOR_BGR2RGB)
-                ##print("left img = {} shape = {}".format(batch_sample[1], left_image.shape))
-                right_image = cv2.cvtColor(cv2.imread(batch_sample[2]), \
-                    cv2.COLOR_BGR2RGB)
+                # center_image = cv2.cvtColor(cv2.imread(batch_sample[0]), \
+                #     cv2.COLOR_BGR2RGB)
+                # ##print("center img = {} shape = {}".format(batch_sample[0], center_image.shape))
+                # left_image = cv2.cvtColor(cv2.imread(batch_sample[1]), \
+                #     cv2.COLOR_BGR2RGB)
+                # ##print("left img = {} shape = {}".format(batch_sample[1], left_image.shape))
+                # right_image = cv2.cvtColor(cv2.imread(batch_sample[2]), \
+                #     cv2.COLOR_BGR2RGB)
                 ##print("right img = {} shape = {}".format(batch_sample[2], right_image.shape))
-                # center_image = cv2.imread(batch_sample[0])
-                # left_image = cv2.imread(batch_sample[1])
-                # right_image = cv2.imread(batch_sample[2])
+                center_image = cv2.imread(batch_sample[0])
+                left_image = cv2.imread(batch_sample[1])
+                right_image = cv2.imread(batch_sample[2])
 
                 steering_center = float(batch_sample[3])
 
@@ -154,10 +152,10 @@ def train_generator(samples, batch_size=batch_size):
                     images.append(np.fliplr(image))
                     angles.append(-angle)
 
-                hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV) # Change to HSV
-                hsv[:, :, 2] = hsv[:, :, 2] * random.uniform(0.4, 1.2) # Convert back to RGB and append
-                images.append(cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB))
-                angles.append(angle)
+                # hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV) # Change to HSV
+                # hsv[:, :, 2] = hsv[:, :, 2] * random.uniform(0.4, 1.2) # Convert back to RGB and append
+                # images.append(cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB))
+                # angles.append(angle)
 
                 # Randomly shear image with 80% probability
                 if random.random() <= 0.80:
@@ -193,7 +191,7 @@ def valid_generator(samples, batch_size=batch_size):
                 #Validation generator center images only, no augmentation
                 for batch_sample in batch_samples:
                     center_image = cv2.imread(batch_sample[0])
-                    center_image = cv2.cvtColor(center_image, cv2.COLOR_BGR2RGB)
+                    ##center_image = cv2.cvtColor(center_image, cv2.COLOR_BGR2RGB)
                     images.append(center_image)
                     angles.append(float(batch_sample[3]))
 
