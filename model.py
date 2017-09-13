@@ -109,15 +109,15 @@ def train_generator(samples, batch_size=batch_size):
             angles = []
             # Read center, left and right images from a folder containing Udacity data and my data
             for batch_sample in batch_samples:
-                # center_image = cv2.cvtColor(cv2.imread(batch_sample[0]), \
-                #     cv2.COLOR_BGR2RGB)
-                # left_image = cv2.cvtColor(cv2.imread(batch_sample[1]), \
-                #     cv2.COLOR_BGR2RGB)
-                # right_image = cv2.cvtColor(cv2.imread(batch_sample[2]), \
-                #     cv2.COLOR_BGR2RGB)
-                center_image = cv2.imread(batch_sample[0])
-                left_image = cv2.imread(batch_sample[1])
-                right_image = cv2.imread(batch_sample[2])
+                center_image = cv2.cvtColor(cv2.imread(batch_sample[0]), \
+                    cv2.COLOR_BGR2RGB)
+                left_image = cv2.cvtColor(cv2.imread(batch_sample[1]), \
+                    cv2.COLOR_BGR2RGB)
+                right_image = cv2.cvtColor(cv2.imread(batch_sample[2]), \
+                    cv2.COLOR_BGR2RGB)
+                # center_image = cv2.imread(batch_sample[0])
+                # left_image = cv2.imread(batch_sample[1])
+                # right_image = cv2.imread(batch_sample[2])
 
                 steering_center = float(batch_sample[3])
 
