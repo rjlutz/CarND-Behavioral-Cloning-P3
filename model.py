@@ -67,7 +67,9 @@ for f in fnames:
     observations = add_driving_data(f, observations)
 
 ## add and amplify dirt road data, adding some minor jitter each time
-for dset in ['./data/lake-dirtroad-turn-repetitive', './data/lake-firstturn-repetitive']:
+for dset in ['./data/lake-dirtroad-turn-repetitive', \
+    './data/lake-firstturn-repetitive', \
+    './data/data-corrections']:
 
     times = 4
     turns_file = dset + '/' +  'driving_log.csv'
