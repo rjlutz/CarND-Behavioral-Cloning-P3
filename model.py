@@ -56,11 +56,10 @@ def add_driving_data(path, total_list):
     return total_list
 
 fnames = []
-fnames.extend(['./data/lake-dataCCW'])
+##fnames.extend(['./data/lake-dataCCW'])
 fnames.extend(['./data/data-CCW-AJL'])
 fnames.extend(['./data/lake-dataCW'])
 fnames.extend(['./data/data-corrections'])
-fnames.extend(['./data/lake-firstturn-repetitive'])
 ##fnames.append(['./data/jungle-dataCCW'])([])
 
 observations = []
@@ -68,16 +67,22 @@ for f in fnames:
     observations = add_driving_data(f, observations)
 
 ## add and amplify dirt road data, adding some minor jitter each time
-turns_list = []
-turns_file = './data/lake-dirtroad-turn-repetitive/' + 'driving_log.csv'
-dirt_road_data = pd.read_csv(turns_file, header=0)
-dirt_road_data.columns = ["c_image", "l_image", "r_image", "steering", "throttle", "brake", "speed"]
-for i in range(4):
-    steer = dirt_road_data["steering"][i] * (1.0 + np.random.uniform(-1, 1) / 100.0)
-    turns_list.append([dirt_road_data["c_image"][i], dirt_road_data["l_image"][i], \
-                       dirt_road_data["r_image"][i], steer])
+for dset in ['./data/lake-dirtroad-turn-repetitive', './data/lake-firstturn-repetitive']:
 
-observations += turns_list
+    times = 4
+    turns_file = dset + '/' +  'driving_log.csv'
+    dirt_road_data = pd.read_csv(turns_file, header=0)
+    dirt_road_data.columns = ["c_image", "l_image", "r_image", "steering", "throttle", "brake", "speed"]
+    for i in range(times):
+        turns_list = []
+        for j in len(dirt_road_data):
+            steer = dirt_road_data["steering"][j] * (1.0 + np.random.uniform(-1, 1) / 100.0)
+            turns_list.append([dirt_road_data["c_image"][j], dirt_road_data["l_image"][j], \
+                               dirt_road_data["r_image"][j], steer])
+            observations += turns_list
+
+print ("Turns/Running Total = {} {}. Turns added {} times".format( \
+           len(turns_list), len(observations), times))
 
 random.shuffle(observations)
 
@@ -264,12 +269,11 @@ model.save('model.h5')
 print(history_object.history.keys())
 
 ### plot the training and validation loss for each epoch
-fig = plt.figure()
-
-fig.plot(history_object.history['loss'])
-fig.plot(history_object.history['val_loss'])
-fig.title('model mean squared error loss')
-fig.ylabel('mean squared error loss')
-fig.xlabel('epoch')
-fig.legend(['training set', 'validation set'], loc='upper right')
-fig.savefig("training_loss.png")
+plt.plot(history_object.history['loss'])
+plt.plot(history_object.history['val_loss'])
+plt.title('model mean squared error loss')
+plt.ylabel('mean squared error loss')
+plt.xlabel('epoch')
+plt.legend(['training set', 'validation set'], loc='upper right')
+plot.show()
+plt.savefig("training_loss.png")
