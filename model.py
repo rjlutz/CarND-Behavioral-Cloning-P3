@@ -107,15 +107,12 @@ def train_generator(samples, batch_size=batch_size):
             angles = []
             # Read center, left and right images from a folder containing Udacity data and my data
             for batch_sample in batch_samples:
-                center_name = batch_sample[0]
-                center_image = cv2.imread(center_name)
-                ##center_image = cv2.cvtColor(center_image, cv2.COLOR_BGR2RGB)
-                left_name = batch_sample[1]
-                left_image = cv2.imread(left_name)
-                ##left_image = cv2.cvtColor(left_image, cv2.COLOR_BGR2RGB)
-                right_name = batch_sample[2]
-                right_image = cv2.imread(right_name)
-                ##right_image = cv2.cvtColor(right_image, cv2.COLOR_BGR2RGB)
+                center_image = cv2.cvtColor(cv2.imread(batch_sample[0]), \
+                    cv2.COLOR_BGR2RGB)
+                left_image = cv2.cvtColor(cv2.imread(batch_sample[1]), \
+                    cv2.COLOR_BGR2RGB)
+                right_image = cv2.cvtColor(cv2.imread(batch_sample[2]), \
+                    cv2.COLOR_BGR2RGB)
 
                 steering_center = float(batch_sample[3])
 
@@ -275,5 +272,5 @@ plt.title('model mean squared error loss')
 plt.ylabel('mean squared error loss')
 plt.xlabel('epoch')
 plt.legend(['training set', 'validation set'], loc='upper right')
-plot.show()
+plt.show()
 plt.savefig("training_loss.png")
