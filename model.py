@@ -54,10 +54,10 @@ def add_driving_data(path, total_list):
     return total_list
 
 fnames = []
-fnames.extend(['./data/lake-dataCCW'])
-fnames.extend(['./data/data-CCW-AJL'])
-fnames.extend(['./data/lake-dataCW'])
-fnames.extend(['./data/data-corrections'])
+fnames.extend(['data/lake-dataCCW'])
+fnames.extend(['data/data-CCW-AJL'])
+fnames.extend(['data/lake-dataCW'])
+fnames.extend(['data/data-corrections'])
 ##fnames.append(['./data/jungle-dataCCW'])([])
 
 observations = []
@@ -65,9 +65,9 @@ for f in fnames:
     observations = add_driving_data(f, observations)
 
 ## add and amplify dirt road data, adding some minor jitter each time
-for dset in ['./data/lake-dirtroad-turn-repetitive', \
-    './data/lake-firstturn-repetitive', \
-    './data/data-corrections']:
+for dset in ['data/lake-dirtroad-turn-repetitive', \
+    'data/lake-firstturn-repetitive', \
+    'data/data-corrections']:
 
     times = 4
     turns_file = dset + '/' +  'driving_log.csv'
