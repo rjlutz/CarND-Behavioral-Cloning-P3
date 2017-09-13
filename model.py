@@ -75,11 +75,11 @@ for dset in ['./data/lake-dirtroad-turn-repetitive', './data/lake-firstturn-repe
     dirt_road_data.columns = ["c_image", "l_image", "r_image", "steering", "throttle", "brake", "speed"]
     for i in range(times):
         turns_list = []
-        for j in len(dirt_road_data):
+        for j in range(len(dirt_road_data)):
             steer = dirt_road_data["steering"][j] * (1.0 + np.random.uniform(-1, 1) / 100.0)
             turns_list.append([dirt_road_data["c_image"][j], dirt_road_data["l_image"][j], \
                                dirt_road_data["r_image"][j], steer])
-            observations += turns_list
+        observations += turns_list
 
 print ("Turns/Running Total = {} {}. Turns added {} times".format( \
            len(turns_list), len(observations), times))
