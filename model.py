@@ -279,8 +279,15 @@ nb_val_samples = 2000
 ##history_object = model.fit(X_train, y_train, validation_split=0.20, shuffle=True, nb_epoch=5, \
 ##    verbose=1)
 
+#save every model using Keras checkpoint
+from keras.callbacks import ModelCheckpoint
+filepath="data/checkpoint/check-{epoch:02d}-{val_loss:.4f}.hdf5"
+checkpoint = ModelCheckpoint(filepath= filepath, verbose=1, save_best_only=False)
+callbacks_list = [checkpoint]
+
 history_object = model.fit_generator(train_generator, samples_per_epoch=samples_per_epoch, \
-     validation_data=validation_generator, nb_val_samples=nb_val_samples, nb_epoch=nb_epoch, verbose=1)
+     validation_data=validation_generator, nb_val_samples=nb_val_samples, nb_epoch=nb_epoch, \
+     verbose=1, callbacks=callbacks_list)
 
 model.save('model.h5')
 
