@@ -111,13 +111,13 @@ def train_generator(samples, batch_size=batch_size):
             for batch_sample in batch_samples:
                 center_image = cv2.cvtColor(cv2.imread(batch_sample[0]), \
                     cv2.COLOR_BGR2RGB)
-                print("center img = {} shape = {}".format(batch_sample[0], center_image.shape))
+                ##print("center img = {} shape = {}".format(batch_sample[0], center_image.shape))
                 left_image = cv2.cvtColor(cv2.imread(batch_sample[1]), \
                     cv2.COLOR_BGR2RGB)
-                print("left img = {} shape = {}".format(batch_sample[1], left_image.shape))
+                ##print("left img = {} shape = {}".format(batch_sample[1], left_image.shape))
                 right_image = cv2.cvtColor(cv2.imread(batch_sample[2]), \
                     cv2.COLOR_BGR2RGB)
-                print("right img = {} shape = {}".format(batch_sample[2], right_image.shape))
+                ##print("right img = {} shape = {}".format(batch_sample[2], right_image.shape))
                 # center_image = cv2.imread(batch_sample[0])
                 # left_image = cv2.imread(batch_sample[1])
                 # right_image = cv2.imread(batch_sample[2])
@@ -146,8 +146,6 @@ def train_generator(samples, batch_size=batch_size):
                     image = right_image
                     angle = steering_right
 
-
-
                 images.append(image)
                 angles.append(angle)
 
@@ -156,10 +154,10 @@ def train_generator(samples, batch_size=batch_size):
                     images.append(np.fliplr(image))
                     angles.append(-angle)
 
-                # hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV) # Change to HSV
-                # hsv[:, :, 2] = hsv[:, :, 2] * random.uniform(0.4, 1.2) # Convert back to RGB and append
-                # images.append(cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB))
-                # angles.append(angle)
+                hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV) # Change to HSV
+                hsv[:, :, 2] = hsv[:, :, 2] * random.uniform(0.4, 1.2) # Convert back to RGB and append
+                images.append(cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB))
+                angles.append(angle)
 
                 # Randomly shear image with 80% probability
                 if random.random() <= 0.80:
@@ -183,7 +181,7 @@ def train_generator(samples, batch_size=batch_size):
 
 def valid_generator(samples, batch_size=batch_size):
         num_samples = len(samples)
-        while 1:  # Loop forever so the generator never terminates
+        while True:  # Loop forever so the generator never terminates
             from sklearn.utils import shuffle
             shuffle(samples)
             for offset in range(0, num_samples, batch_size):
@@ -192,10 +190,11 @@ def valid_generator(samples, batch_size=batch_size):
                 images = []
                 angles = []
 
-                #Validation generator only has center images and no augmentations
+                #Validation generator center images only, no augmentation
                 for batch_sample in batch_samples:
-                    ##center_image = cv2.cvtColor(center_image, cv2.COLOR_BGR2RGB)
-                    images.append(cv2.imread(batch_sample[0]))
+                    center_image = cv2.imread(batch_sample[0])
+                    center_image = cv2.cvtColor(center_image, cv2.COLOR_BGR2RGB)
+                    images.append(center_image)
                     angles.append(float(batch_sample[3]))
 
                 X_train = np.array(images)
@@ -216,11 +215,6 @@ from keras.optimizers import Adam
 def resize_image(image):
     import tensorflow as tf
     return tf.image.resize_images(image,[40,60])
-
-
-#Params
-##row, col, ch = 160, 320, 3
-##nb_classes = 1
 
 model = Sequential()
 model.add(ZeroPadding2D((1, 1), input_shape=(160, 320, 3)))
