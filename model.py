@@ -148,9 +148,9 @@ def train_generator(samples, batch_size=batch_size):
                 angles.append(angle)
 
                 # Randomly copy and flip selected images horizontally, with 75% probability
-                if random.random() <= 0.75:
-                    images.append(np.fliplr(image))
-                    angles.append(-angle)
+                # if random.random() <= 0.75:
+                #     images.append(np.fliplr(image))
+                #     angles.append(-angle)
 
                 # hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV) # Change to HSV
                 # hsv[:, :, 2] = hsv[:, :, 2] * random.uniform(0.4, 1.2) # Convert back to RGB and append
@@ -270,8 +270,6 @@ model.compile(optimizer=Adam(lr= 0.0001), loss="mse")
 nb_epoch = 8
 samples_per_epoch = 20000
 nb_val_samples = 2000
-
-
 
 ## backstop
 ##sys.exit(0);
