@@ -280,7 +280,7 @@ nb_val_samples = 2000
 ##    verbose=1)
 
 history_object = model.fit_generator(train_generator, samples_per_epoch=samples_per_epoch, \
-     validation_data=validation_generator, nb_val_samples=nb_val_samples, nb_epoch=nb_epock, verbose=1)
+     validation_data=validation_generator, nb_val_samples=nb_val_samples, nb_epoch=nb_epoch, verbose=1)
 
 model.save('model.h5')
 
