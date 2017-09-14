@@ -228,9 +228,9 @@ model.add(Dense(10))
 model.add(Dense(1))
 model.summary()
 
-model.compile(loss='mse', optimizer='adam').add(ZeroPadding2D((1, 1), input_shape=(row, col, ch)))
+model.compile(loss='mse', optimizer='adam')
 
-nb_epoch = 20
+nb_epoch = 8
 samples_per_epoch = 20000
 nb_val_samples = 2000
 
