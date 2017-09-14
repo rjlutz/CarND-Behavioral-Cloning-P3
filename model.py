@@ -148,14 +148,14 @@ def train_generator(samples, batch_size=batch_size):
                 angles.append(angle)
 
                 # Randomly copy and flip selected images horizontally, with 75% probability
-                # if random.random() <= 0.75:
-                #     images.append(np.fliplr(image))
-                #     angles.append(-angle)
+                if random.random() <= 0.75:
+                    images.append(np.fliplr(image))
+                    angles.append(-angle)
 
-                # hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV) # Change to HSV
-                # hsv[:, :, 2] = hsv[:, :, 2] * random.uniform(0.4, 1.2) # Convert back to RGB and append
-                # images.append(cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB))
-                # angles.append(angle)
+                hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV) # Change to HSV
+                hsv[:, :, 2] = hsv[:, :, 2] * random.uniform(0.4, 1.2) # Convert back to RGB and append
+                images.append(cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB))
+                angles.append(angle)
 
                 # Randomly shear image with 80% probability
                 if random.random() <= 0.80:
@@ -191,7 +191,7 @@ def valid_generator(samples, batch_size=batch_size):
                 #Validation generator center images only, no augmentation
                 for batch_sample in batch_samples:
                     center_image = cv2.imread(batch_sample[0])
-                    ##center_image = cv2.cvtColor(center_image, cv2.COLOR_BGR2RGB)
+                    center_image = cv2.cvtColor(center_image, cv2.COLOR_BGR2RGB)
                     images.append(center_image)
                     angles.append(float(batch_sample[3]))
 
