@@ -107,18 +107,18 @@ def train_generator(samples, batch_size=batch_size):
             angles = []
             # Read center, left and right images from a folder containing Udacity data and my data
             for batch_sample in batch_samples:
-                # center_image = cv2.cvtColor(cv2.imread(batch_sample[0]), \
-                #     cv2.COLOR_BGR2RGB)
-                # ##print("center img = {} shape = {}".format(batch_sample[0], center_image.shape))
-                # left_image = cv2.cvtColor(cv2.imread(batch_sample[1]), \
-                #     cv2.COLOR_BGR2RGB)
-                # ##print("left img = {} shape = {}".format(batch_sample[1], left_image.shape))
-                # right_image = cv2.cvtColor(cv2.imread(batch_sample[2]), \
-                #     cv2.COLOR_BGR2RGB)
+                center_image = cv2.cvtColor(cv2.imread(batch_sample[0]), \
+                    cv2.COLOR_BGR2RGB)
+                ##print("center img = {} shape = {}".format(batch_sample[0], center_image.shape))
+                left_image = cv2.cvtColor(cv2.imread(batch_sample[1]), \
+                    cv2.COLOR_BGR2RGB)
+                ##print("left img = {} shape = {}".format(batch_sample[1], left_image.shape))
+                right_image = cv2.cvtColor(cv2.imread(batch_sample[2]), \
+                    cv2.COLOR_BGR2RGB)
                 ##print("right img = {} shape = {}".format(batch_sample[2], right_image.shape))
-                center_image = cv2.imread(batch_sample[0])
-                left_image = cv2.imread(batch_sample[1])
-                right_image = cv2.imread(batch_sample[2])
+                # center_image = cv2.imread(batch_sample[0])
+                # left_image = cv2.imread(batch_sample[1])
+                # right_image = cv2.imread(batch_sample[2])
 
                 steering_center = float(batch_sample[3])
 
@@ -157,20 +157,20 @@ def train_generator(samples, batch_size=batch_size):
                 images.append(cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB))
                 angles.append(angle)
 
-                # Randomly shear image with 80% probability
-                if random.random() <= 0.80:
-                    shear_range = 40
-                    rows, cols, channels = image.shape
-                    dx = np.random.randint(-shear_range, shear_range + 1)
-                    random_point = [cols / 2 + dx, rows / 2]
-                    pts1 = np.float32([[0, rows], [cols, rows], [cols / 2, rows / 2]])
-                    pts2 = np.float32([[0, rows], [cols, rows], random_point])
-                    dsteering = dx / (rows / 2) * 360 / (2 * np.pi * 25.0) / 10.0
-                    M = cv2.getAffineTransform(pts1, pts2)
-                    shear_image = cv2.warpAffine(center_image, M, (cols, rows), borderMode=1)
-                    shear_angle = angle + dsteering
-                    images.append(shear_image)
-                    angles.append(shear_angle)
+                # # Randomly shear image with 80% probability
+                # if random.random() <= 0.80:
+                #     shear_range = 40
+                #     rows, cols, channels = image.shape
+                #     dx = np.random.randint(-shear_range, shear_range + 1)
+                #     random_point = [cols / 2 + dx, rows / 2]
+                #     pts1 = np.float32([[0, rows], [cols, rows], [cols / 2, rows / 2]])
+                #     pts2 = np.float32([[0, rows], [cols, rows], random_point])
+                #     dsteering = dx / (rows / 2) * 360 / (2 * np.pi * 25.0) / 10.0
+                #     M = cv2.getAffineTransform(pts1, pts2)
+                #     shear_image = cv2.warpAffine(center_image, M, (cols, rows), borderMode=1)
+                #     shear_angle = angle + dsteering
+                #     images.append(shear_image)
+                #     angles.append(shear_angle)
 
             X_train = np.array(images)
             y_train = np.array(angles)
@@ -209,26 +209,54 @@ from keras.layers import Flatten, Dense, Lambda, ELU, Dropout, Activation
 from keras.layers.convolutional import Convolution2D, Cropping2D, ZeroPadding2D, MaxPooling2D
 
 # NVIDIA
+# model = Sequential()
+# model.add(Lambda(lambda x: x / 127.5 - 1.0, input_shape=(160,320,3))) # normalize and mean center
+# model.add(Cropping2D(cropping=((70,25),(0,0))))
+#
+# model.add(Convolution2D(24,5,5,subsample=(2,2),activation="relu"))
+# model.add(Dropout(0.5))
+# model.add(Convolution2D(36,5,5,subsample=(2,2),activation="relu"))
+# model.add(Dropout(0.5))
+# model.add(Convolution2D(48,5,5,subsample=(2,2),activation='relu'))
+# model.add(Dropout(0.5))
+# model.add(Convolution2D(64,3,3,activation='relu'))
+# model.add(Dropout(0.5))
+# model.add(Convolution2D(64,3,3,activation='relu'))
+# model.add(Dropout(0.5))
+#
+# model.add(Flatten())
+# model.add(Dropout(0.5))
+#
+# model.add(Dense(100))
+# model.add(Dense(50))
+# model.add(Dense(10))
+# model.add(Dense(1))
+
 model = Sequential()
 model.add(Lambda(lambda x: x / 127.5 - 1.0, input_shape=(160,320,3))) # normalize and mean center
 model.add(Cropping2D(cropping=((70,25),(0,0))))
-
-model.add(Convolution2D(24,5,5,subsample=(2,2),activation="relu"))
-model.add(Convolution2D(36,5,5,subsample=(2,2),activation="relu"))
-model.add(Convolution2D(48,5,5,subsample=(2,2),activation='relu'))
-model.add(Convolution2D(64,3,3,activation='relu'))
-model.add(Convolution2D(64,3,3,activation='relu'))
-
-model.add(Flatten())
+model.add(Convolution2D(8, 5, 5, border_mode='valid', activation='tanh')) # -> (66,316,8)
 model.add(Dropout(0.5))
-
-model.add(Dense(100))
-model.add(Dense(50))
-model.add(Dense(10))
-model.add(Dense(1))
-model.summary()
-
+model.add(Convolution2D(16, 5, 5, border_mode='valid', activation='tanh', subsample=(2,2))) # -> (31,156,16)
+model.add(Dropout(0.5))
+model.add(Convolution2D(20, 5, 5, border_mode='valid', activation='tanh', subsample=(2,2))) # -> (14,76,20)
+model.add(Dropout(0.5))
+model.add(Convolution2D(24, 5, 5, border_mode='valid', activation='tanh', subsample=(1,2))) # -> (10,36,24)
+model.add(Dropout(0.5))
+model.add(Convolution2D(24, 5, 5, border_mode='valid', activation='tanh', subsample=(1,2))) # -> (6,16,24)
+model.add(Dropout(0.5))
+model.add(Flatten()) # 6x16x24 -> 2304
+from keras.regularizers import l2
+model.add(Dense(30, activation='tanh', W_regularizer=l2(0.01)))
+model.add(Dropout(0.4))
+model.add(Dense(25, activation='tanh', W_regularizer=l2(0.01)))
+model.add(Dropout(0.3))
+model.add(Dense(20, activation='tanh', W_regularizer=l2(0.01)))
+model.add(Dropout(0.2))
+model.add(Dense(1, activation='tanh', W_regularizer=l2(0.01)))
 model.compile(loss='mse', optimizer='adam')
+
+model.summary()
 
 nb_epoch = 8
 samples_per_epoch = 20000
