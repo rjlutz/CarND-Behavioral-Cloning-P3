@@ -57,6 +57,7 @@ fnames = []
 fnames.extend(['./data/lake-dataCCW'])
 fnames.extend(['./data/data-CCW-AJL'])
 fnames.extend(['./data/lake-dataCW'])
+fnames.extend(['./data/lake-dataCCW'])
 ##fnames.append(['./data/jungle-dataCCW'])([])
 
 observations = []
