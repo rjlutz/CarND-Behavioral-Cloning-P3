@@ -103,6 +103,16 @@ print("Training/Validation/Total Observations {} {} {}".format(len(train_observa
       len(validation_observations), len(train_observations) + len(validation_observations)))
 
 batch_size = 256
+new_size_row = 64
+new_size_col = 64
+
+def cropScaleImage(image):
+    shape = image.shape
+    # note: numpy arrays are (row, col)!
+    image = image[math.floor(60:shape[0]-20, 0:shape[1]]
+    image = cv2.resize(image,(new_size_col,new_size_row), interpolation=cv2.INTER_AREA)
+    return image
+
 
 # Start with train generator shared in the class and add image augmentations
 def train_generator(samples, batch_size=batch_size):
@@ -120,6 +130,9 @@ def train_generator(samples, batch_size=batch_size):
                 center_image = cv2.cvtColor(cv2.imread(batch_sample[0]), cv2.COLOR_BGR2RGB)
                 left_image = cv2.cvtColor(cv2.imread(batch_sample[1]), cv2.COLOR_BGR2RGB)
                 right_image = cv2.cvtColor(cv2.imread(batch_sample[2]), cv2.COLOR_BGR2RGB)
+                center_image = cropScaleImage(center_image)
+                right_image = cropScaleImage(right_image)
+                left_image = cropScaleImage(left_image)
 
                 steering_center = float(batch_sample[3])
 
@@ -189,6 +202,7 @@ def valid_generator(samples, batch_size=batch_size):
                 #Validation generator: use center images only, no augmentation
                 for batch_sample in batch_samples:
                     center_image = cv2.cvtColor(cv2.imread(batch_sample[0]), cv2.COLOR_BGR2RGB)
+                    center_image = cropScaleImage(center_image)
                     images.append(center_image)
                     angles.append(float(batch_sample[3]))
                 X_train = np.array(images)
@@ -205,22 +219,16 @@ import tensorflow as tf
 tf.python.control_flow_ops = tf
 from keras.optimizers import Adam
 
-new_size_row = 64
-new_size_col = 64
-
 # Function to resize image
 def resize_image(image):
-    import tensorflow as tf
     return tf.image.resize_images(image,[new_size_row,new_size_col])
 
 ## try this model
-input_shape = (new_size_row, new_size_col, 3)
-
 filter_size = 3
 pool_size = (2,2)
-model = Sequential()
 
-model.add(Lambda(lambda x: x / 127.5 - 1.0, input_shape=(160,320,3))) # normalize and mean center
+model = Sequential()
+model.add(Lambda(lambda x: x / 127.5 - 1.0, input_shape=(new_size_row, new_size_col, 3))) # normalize and mean center
 ##--## model.add(Lambda(lambda x: x/255.-0.5, input_shape=(160,320,3)))
 # Resise data within the neural network
 model.add(Lambda(resize_image))
