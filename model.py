@@ -27,10 +27,10 @@ def add_driving_data(path, total_list):
         steering_center = float(line[3])
 
         # add images and angle
-        paths = [];
-        paths.append(path + '/IMG/' + filenames[0]);
-        paths.append(path + '/IMG/' + filenames[1]);
-        paths.append(path + '/IMG/' + filenames[2]);
+        paths = []
+        paths.append(path + '/IMG/' + filenames[0])
+        paths.append(path + '/IMG/' + filenames[1])
+        paths.append(path + '/IMG/' + filenames[2])
 
         ## Straightest steering - undersample by 20%
         if (abs(steering_center) < 0.02 and random.random() <= 0.80):
@@ -57,28 +57,30 @@ fnames = []
 fnames.extend(['data/lake-dataCCW'])
 fnames.extend(['data/data-CCW-AJL'])
 fnames.extend(['data/lake-dataCW'])
-fnames.extend(['data/data-corrections'])
 ##fnames.append(['./data/jungle-dataCCW'])([])
 
 observations = []
 for f in fnames:
     observations = add_driving_data(f, observations)
 
-## add and amplify dirt road data, adding some minor jitter each time
-for dset in ['data/lake-dirtroad-turn-repetitive', \
-    'data/lake-firstturn-repetitive', \
+## add and amplify dirt road and curve data, adding some minor jitter each time
+for dset in ['data/lake-dirtroad-turn-repetitive', 'data/lake-firstturn-repetitive', \
     'data/data-corrections']:
 
     times = 4
     turns_file = dset + '/' +  'driving_log.csv'
-    dirt_road_data = pd.read_csv(turns_file, header=0)
-    dirt_road_data.columns = ["c_image", "l_image", "r_image", "steering", "throttle", "brake", "speed"]
+
+    augmented_data = pd.read_csv(turns_file, header=0)
+    augmented_data.columns = ["c_image", "l_image", "r_image", "steering", "throttle", "brake", "speed"]
     for i in range(times):
         turns_list = []
-        for j in range(len(dirt_road_data)):
-            steer = dirt_road_data["steering"][j] * (1.0 + np.random.uniform(-1, 1) / 100.0)
-            turns_list.append([dirt_road_data["c_image"][j], dirt_road_data["l_image"][j], \
-                               dirt_road_data["r_image"][j], steer])
+        for j in range(len(augmented_data)):
+            paths = []
+            paths.append(dset + '/IMG/' + augmented_data["c_image"][j].split('/')[-1]);
+            paths.append(dset + '/IMG/' + augmented_data["l_image"][j].split('/')[-1]);
+            paths.append(dset + '/IMG/' + augmented_data["r_image"][j].split('/')[-1]);
+            steer = augmented_data["steering"][j] * (1.0 + np.random.uniform(-1, 1) / 100.0)
+            turns_list.append([paths[0], paths[1], paths[2], steer])
         observations += turns_list
 
 print ("Turns/Running Total = {} {}. Turns added {} times".format( \
@@ -92,7 +94,7 @@ train_observations, validation_observations = train_test_split(observations, tes
 print("Training/Validation/Total Observations {} {} {}".format(len(train_observations), \
       len(validation_observations), len(train_observations) + len(validation_observations)))
 
-batch_size = len(train_observations)
+batch_size = 128
 
 # Start with train generator shared in the class and add image augmentations
 def train_generator(samples, batch_size=batch_size):
@@ -107,14 +109,11 @@ def train_generator(samples, batch_size=batch_size):
             angles = []
             # Read center, left and right images from a folder containing Udacity data and my data
             for batch_sample in batch_samples:
-                center_image = cv2.cvtColor(cv2.imread(batch_sample[0]), \
-                    cv2.COLOR_BGR2RGB)
+                center_image = cv2.cvtColor(cv2.imread(batch_sample[0]), cv2.COLOR_BGR2RGB)
                 ##print("center img = {} shape = {}".format(batch_sample[0], center_image.shape))
-                left_image = cv2.cvtColor(cv2.imread(batch_sample[1]), \
-                    cv2.COLOR_BGR2RGB)
+                left_image = cv2.cvtColor(cv2.imread(batch_sample[1]), cv2.COLOR_BGR2RGB)
                 ##print("left img = {} shape = {}".format(batch_sample[1], left_image.shape))
-                right_image = cv2.cvtColor(cv2.imread(batch_sample[2]), \
-                    cv2.COLOR_BGR2RGB)
+                right_image = cv2.cvtColor(cv2.imread(batch_sample[2]), cv2.COLOR_BGR2RGB)
                 ##print("right img = {} shape = {}".format(batch_sample[2], right_image.shape))
                 # center_image = cv2.imread(batch_sample[0])
                 # left_image = cv2.imread(batch_sample[1])
