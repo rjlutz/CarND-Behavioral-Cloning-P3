@@ -202,29 +202,112 @@ from keras.models import Sequential
 from keras.layers import Flatten, Dense, Lambda, ELU, Dropout, Activation
 from keras.layers.convolutional import Convolution2D, Cropping2D, ZeroPadding2D, MaxPooling2D
 
-# NVIDIA
-model = Sequential()
-model.add(Lambda(lambda x: x / 127.5 - 1.0, input_shape=(160,320,3))) # normalize and mean center
-model.add(Cropping2D(cropping=((70,25),(0,0))))
+$ try this model
 
-model.add(Convolution2D(24,5,5,subsample=(2,2),activation="relu"))
+tf.python.control_flow_ops = tf
+new_size_row = 64
+new_size_col = 64
+
+input_shape = (new_size_row, new_size_col, 3)
+
+filter_size = 3
+
+pool_size = (2,2)
+model = Sequential()
+#model.add(MaxPooling2D(pool_size=pool_size,input_shape=input_shape))
+model.add(Lambda(lambda x: x/255.-0.5,input_shape=input_shape))
+
+model.add(Convolution2D(3,1,1,
+                        border_mode='valid',
+                        name='conv0', init='he_normal'))
+model.add(ELU())
+
+model.add(Convolution2D(32,filter_size,filter_size,
+                        border_mode='valid',
+                        name='conv1', init='he_normal'))
+model.add(ELU())
+model.add(Convolution2D(32,filter_size,filter_size,
+                        border_mode='valid',
+                        name='conv2', init='he_normal'))
+model.add(ELU())
+model.add(MaxPooling2D(pool_size=pool_size))
 model.add(Dropout(0.5))
-model.add(Convolution2D(36,5,5,subsample=(2,2),activation="relu"))
+
+model.add(Convolution2D(64,filter_size,filter_size,
+                        border_mode='valid',
+                        name='conv3', init='he_normal'))
+model.add(ELU())
+
+model.add(Convolution2D(64,filter_size,filter_size,
+                        border_mode='valid',
+                        name='conv4', init='he_normal'))
+model.add(ELU())
+model.add(MaxPooling2D(pool_size=pool_size))
+
 model.add(Dropout(0.5))
-model.add(Convolution2D(48,5,5,subsample=(2,2),activation='relu'))
+
+
+model.add(Convolution2D(128,filter_size,filter_size,
+                        border_mode='valid',
+                        name='conv5', init='he_normal'))
+model.add(ELU())
+model.add(Convolution2D(128,filter_size,filter_size,
+                        border_mode='valid',
+                        name='conv6', init='he_normal'))
+model.add(ELU())
+model.add(MaxPooling2D(pool_size=pool_size))
 model.add(Dropout(0.5))
-model.add(Convolution2D(64,3,3,activation='relu'))
-model.add(Dropout(0.5))
-model.add(Convolution2D(64,3,3,activation='relu'))
-model.add(Dropout(0.5))
+
 
 model.add(Flatten())
-model.add(Dropout(0.5))
 
-model.add(Dense(100))
-model.add(Dense(50))
-model.add(Dense(10))
-model.add(Dense(1))
+model.add(Dense(512,name='hidden1', init='he_normal'))
+model.add(ELU())
+model.add(Dropout(0.5))
+model.add(Dense(64,name='hidden2', init='he_normal'))
+model.add(ELU())
+model.add(Dropout(0.5))
+model.add(Dense(16,name='hidden3',init='he_normal'))
+model.add(ELU())
+model.add(Dropout(0.5))
+model.add(Dense(1, name='output', init='he_normal'))
+
+adam = Adam(lr=1e-4, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+model.compile(optimizer=adam, loss='mse')
+
+# # Function to resize image
+# def resize_image(image):
+#     import tensorflow as tf
+#     return tf.image.resize_images(image,[200,66])
+
+# NVIDIA
+# model = Sequential()
+#
+# model.add(Lambda(lambda x: x / 127.5 - 1.0, input_shape=(160,320,3))) # normalize and mean center
+# model.add(Cropping2D(cropping=((70,25),(0,0))))
+#
+# # Resise data within the neural network
+# model.add(Lambda(resize_image))
+#
+# model.add(Convolution2D(24,5,5,subsample=(2,2),activation="relu"))
+# model.add(Dropout(0.5))
+# model.add(Convolution2D(36,5,5,subsample=(2,2),activation="relu"))
+# model.add(Dropout(0.5))
+# model.add(Convolution2D(48,5,5,subsample=(2,2),activation='relu'))
+# model.add(Dropout(0.5))
+# model.add(Convolution2D(64,3,3,activation='relu'))
+# model.add(Dropout(0.5))
+# model.add(Convolution2D(64,3,3,activation='relu'))
+# model.add(Dropout(0.5))
+#
+# model.add(Flatten())
+# model.add(Dropout(0.5))
+#
+# model.add(Dense(100))
+# model.add(Dense(50))
+# model.add(Dense(10))
+# model.add(Dense(1))
+# model.compile(loss='mse', optimizer='adam')
 
 # model = Sequential()
 # model.add(Lambda(lambda x: x / 127.5 - 1.0, input_shape=(160,320,3))) # normalize and mean center
@@ -248,7 +331,7 @@ model.add(Dense(1))
 # model.add(Dense(20, activation='tanh', W_regularizer=l2(0.01)))
 # model.add(Dropout(0.2))
 # model.add(Dense(1, activation='tanh', W_regularizer=l2(0.01)))
-model.compile(loss='mse', optimizer='adam')
+# model.compile(loss='mse', optimizer='adam')
 
 model.summary()
 
