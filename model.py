@@ -64,27 +64,33 @@ for f in fnames:
     observations = add_driving_data(f, observations)
 
 ## add and amplify dirt road and curve data, adding some minor jitter each time
-for dset in ['./data/lake-dirtroad-turn-repetitive', './data/lake-firstturn-repetitive', \
-    './data/lake-thirdturn-repetitive', './data/data-corrections']:
-
+focused = []
+focused.extend(['./data/lake-dirtroad-turn-repetitive'])
+focused.extend(['./data/lake-firstturn-repetitive'])
+focused.extend(['./data/lake-thirdturn-repetitive''])
+focused.extend(['./data/data-corrections'])
+focused.extend(['./data/bridge-repetitive'])
+for f in focused:
     times = 4
-    turns_file = dset + '/' +  'driving_log.csv'
+    observations = add_driving_data(dset, observations)
 
-    augmented_data = pd.read_csv(turns_file, header=0)
-    augmented_data.columns = ["c_image", "l_image", "r_image", "steering", "throttle", "brake", "speed"]
-    for i in range(times):
-        turns_list = []
-        for j in range(len(augmented_data)):
-            paths = []
-            paths.append(dset + '/IMG/' + augmented_data["c_image"][j].split('/')[-1]);
-            paths.append(dset + '/IMG/' + augmented_data["l_image"][j].split('/')[-1]);
-            paths.append(dset + '/IMG/' + augmented_data["r_image"][j].split('/')[-1]);
-            steer = augmented_data["steering"][j] * (1.0 + np.random.uniform(-1, 1) / 100.0)
-            turns_list.append([paths[0], paths[1], paths[2], steer])
-        observations += turns_list
+    # turns_file = dset + '/' +  'driving_log.csv'
+    #
+    # augmented_data = pd.read_csv(turns_file, header=0)
+    # augmented_data.columns = ["c_image", "l_image", "r_image", "steering", "throttle", "brake", "speed"]
+    # for i in range(times):
+    #     turns_list = []
+    #     for j in range(len(augmented_data)):
+    #         paths = []
+    #         paths.append(dset + '/IMG/' + augmented_data["c_image"][j].split('/')[-1]);
+    #         paths.append(dset + '/IMG/' + augmented_data["l_image"][j].split('/')[-1]);
+    #         paths.append(dset + '/IMG/' + augmented_data["r_image"][j].split('/')[-1]);
+    #         steer = augmented_data["steering"][j] * (1.0 + np.random.uniform(-1, 1) / 100.0)
+    #         turns_list.append([paths[0], paths[1], paths[2], steer])
+    #     observations += turns_list
 
-print ("Turns/Running Total = {} {}. Turns added {} times".format( \
-           len(turns_list), len(observations), times))
+# print ("Turns/Running Total = {} {}. Turns added {} times".format( \
+#            len(turns_list), len(observations), times))
 
 random.shuffle(observations)
 
@@ -150,20 +156,20 @@ def train_generator(samples, batch_size=batch_size):
                 images.append(cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB))
                 angles.append(angle)
 
-                # # Randomly shear image with 80% probability
-                # if random.random() <= 0.80:
-                #     shear_range = 40
-                #     rows, cols, channels = image.shape
-                #     dx = np.random.randint(-shear_range, shear_range + 1)
-                #     random_point = [cols / 2 + dx, rows / 2]
-                #     pts1 = np.float32([[0, rows], [cols, rows], [cols / 2, rows / 2]])
-                #     pts2 = np.float32([[0, rows], [cols, rows], random_point])
-                #     dsteering = dx / (rows / 2) * 360 / (2 * np.pi * 25.0) / 10.0
-                #     M = cv2.getAffineTransform(pts1, pts2)
-                #     shear_image = cv2.warpAffine(center_image, M, (cols, rows), borderMode=1)
-                #     shear_angle = angle + dsteering
-                #     images.append(shear_image)
-                #     angles.append(shear_angle)
+                # Randomly shear image with 80% probability
+                if random.random() <= 0.80:
+                    shear_range = 40
+                    rows, cols, channels = image.shape
+                    dx = np.random.randint(-shear_range, shear_range + 1)
+                    random_point = [cols / 2 + dx, rows / 2]
+                    pts1 = np.float32([[0, rows], [cols, rows], [cols / 2, rows / 2]])
+                    pts2 = np.float32([[0, rows], [cols, rows], random_point])
+                    dsteering = dx / (rows / 2) * 360 / (2 * np.pi * 25.0) / 10.0
+                    M = cv2.getAffineTransform(pts1, pts2)
+                    shear_image = cv2.warpAffine(center_image, M, (cols, rows), borderMode=1)
+                    shear_angle = angle + dsteering
+                    images.append(shear_image)
+                    angles.append(shear_angle)
 
             X_train = np.array(images)
             y_train = np.array(angles)
