@@ -203,51 +203,51 @@ from keras.layers import Flatten, Dense, Lambda, ELU, Dropout, Activation
 from keras.layers.convolutional import Convolution2D, Cropping2D, ZeroPadding2D, MaxPooling2D
 
 # NVIDIA
-# model = Sequential()
-# model.add(Lambda(lambda x: x / 127.5 - 1.0, input_shape=(160,320,3))) # normalize and mean center
-# model.add(Cropping2D(cropping=((70,25),(0,0))))
-#
-# model.add(Convolution2D(24,5,5,subsample=(2,2),activation="relu"))
-# model.add(Dropout(0.5))
-# model.add(Convolution2D(36,5,5,subsample=(2,2),activation="relu"))
-# model.add(Dropout(0.5))
-# model.add(Convolution2D(48,5,5,subsample=(2,2),activation='relu'))
-# model.add(Dropout(0.5))
-# model.add(Convolution2D(64,3,3,activation='relu'))
-# model.add(Dropout(0.5))
-# model.add(Convolution2D(64,3,3,activation='relu'))
-# model.add(Dropout(0.5))
-#
-# model.add(Flatten())
-# model.add(Dropout(0.5))
-#
-# model.add(Dense(100))
-# model.add(Dense(50))
-# model.add(Dense(10))
-# model.add(Dense(1))
-
 model = Sequential()
 model.add(Lambda(lambda x: x / 127.5 - 1.0, input_shape=(160,320,3))) # normalize and mean center
 model.add(Cropping2D(cropping=((70,25),(0,0))))
-model.add(Convolution2D(8, 5, 5, border_mode='valid', activation='tanh')) # -> (66,316,8)
+
+model.add(Convolution2D(24,5,5,subsample=(2,2),activation="relu"))
 model.add(Dropout(0.5))
-model.add(Convolution2D(16, 5, 5, border_mode='valid', activation='tanh', subsample=(2,2))) # -> (31,156,16)
+model.add(Convolution2D(36,5,5,subsample=(2,2),activation="relu"))
 model.add(Dropout(0.5))
-model.add(Convolution2D(20, 5, 5, border_mode='valid', activation='tanh', subsample=(2,2))) # -> (14,76,20)
+model.add(Convolution2D(48,5,5,subsample=(2,2),activation='relu'))
 model.add(Dropout(0.5))
-model.add(Convolution2D(24, 5, 5, border_mode='valid', activation='tanh', subsample=(1,2))) # -> (10,36,24)
+model.add(Convolution2D(64,3,3,activation='relu'))
 model.add(Dropout(0.5))
-model.add(Convolution2D(24, 5, 5, border_mode='valid', activation='tanh', subsample=(1,2))) # -> (6,16,24)
+model.add(Convolution2D(64,3,3,activation='relu'))
 model.add(Dropout(0.5))
-model.add(Flatten()) # 6x16x24 -> 2304
-from keras.regularizers import l2
-model.add(Dense(30, activation='tanh', W_regularizer=l2(0.01)))
-model.add(Dropout(0.4))
-model.add(Dense(25, activation='tanh', W_regularizer=l2(0.01)))
-model.add(Dropout(0.3))
-model.add(Dense(20, activation='tanh', W_regularizer=l2(0.01)))
-model.add(Dropout(0.2))
-model.add(Dense(1, activation='tanh', W_regularizer=l2(0.01)))
+
+model.add(Flatten())
+model.add(Dropout(0.5))
+
+model.add(Dense(100))
+model.add(Dense(50))
+model.add(Dense(10))
+model.add(Dense(1))
+
+# model = Sequential()
+# model.add(Lambda(lambda x: x / 127.5 - 1.0, input_shape=(160,320,3))) # normalize and mean center
+# model.add(Cropping2D(cropping=((70,25),(0,0))))
+# model.add(Convolution2D(8, 5, 5, border_mode='valid', activation='tanh')) # -> (66,316,8)
+# model.add(Dropout(0.5))
+# model.add(Convolution2D(16, 5, 5, border_mode='valid', activation='tanh', subsample=(2,2))) # -> (31,156,16)
+# model.add(Dropout(0.5))
+# model.add(Convolution2D(20, 5, 5, border_mode='valid', activation='tanh', subsample=(2,2))) # -> (14,76,20)
+# model.add(Dropout(0.5))
+# model.add(Convolution2D(24, 5, 5, border_mode='valid', activation='tanh', subsample=(1,2))) # -> (10,36,24)
+# model.add(Dropout(0.5))
+# model.add(Convolution2D(24, 5, 5, border_mode='valid', activation='tanh', subsample=(1,2))) # -> (6,16,24)
+# model.add(Dropout(0.5))
+# model.add(Flatten()) # 6x16x24 -> 2304
+# from keras.regularizers import l2
+# model.add(Dense(30, activation='tanh', W_regularizer=l2(0.01)))
+# model.add(Dropout(0.4))
+# model.add(Dense(25, activation='tanh', W_regularizer=l2(0.01)))
+# model.add(Dropout(0.3))
+# model.add(Dense(20, activation='tanh', W_regularizer=l2(0.01)))
+# model.add(Dropout(0.2))
+# model.add(Dense(1, activation='tanh', W_regularizer=l2(0.01)))
 model.compile(loss='mse', optimizer='adam')
 
 model.summary()
