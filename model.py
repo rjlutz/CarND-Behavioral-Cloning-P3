@@ -67,7 +67,7 @@ for f in fnames:
 focused = []
 focused.extend(['./data/lake-dirtroad-turn-repetitive'])
 focused.extend(['./data/lake-firstturn-repetitive'])
-focused.extend(['./data/lake-thirdturn-repetitive''])
+focused.extend(['./data/lake-thirdturn-repetitive'])
 focused.extend(['./data/data-corrections'])
 focused.extend(['./data/bridge-repetitive'])
 for f in focused:
