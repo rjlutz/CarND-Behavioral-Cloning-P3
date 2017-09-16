@@ -3,9 +3,10 @@ import cv2
 import numpy as np
 import random
 import matplotlib
-matplotlib.use('Agg') ## needed for batch stash of loss diagram
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import pandas as pd
+import sys
 
 def add_driving_data(path, total_list):
 
@@ -91,7 +92,7 @@ train_observations, validation_observations = train_test_split(observations, tes
 print("Training/Validation/Total Observations {} {} {}".format(len(train_observations), \
       len(validation_observations), len(train_observations) + len(validation_observations)))
 
-batch_size = 128;
+batch_size = len(train_observations)
 
 # Start with train generator shared in the class and add image augmentations
 def train_generator(samples, batch_size=batch_size):
@@ -108,10 +109,16 @@ def train_generator(samples, batch_size=batch_size):
             for batch_sample in batch_samples:
                 center_image = cv2.cvtColor(cv2.imread(batch_sample[0]), \
                     cv2.COLOR_BGR2RGB)
+                ##print("center img = {} shape = {}".format(batch_sample[0], center_image.shape))
                 left_image = cv2.cvtColor(cv2.imread(batch_sample[1]), \
                     cv2.COLOR_BGR2RGB)
+                ##print("left img = {} shape = {}".format(batch_sample[1], left_image.shape))
                 right_image = cv2.cvtColor(cv2.imread(batch_sample[2]), \
                     cv2.COLOR_BGR2RGB)
+                ##print("right img = {} shape = {}".format(batch_sample[2], right_image.shape))
+                # center_image = cv2.imread(batch_sample[0])
+                # left_image = cv2.imread(batch_sample[1])
+                # right_image = cv2.imread(batch_sample[2])
 
                 steering_center = float(batch_sample[3])
 
@@ -145,7 +152,6 @@ def train_generator(samples, batch_size=batch_size):
                     images.append(np.fliplr(image))
                     angles.append(-angle)
 
-                ## augment with images having varying light conditions
                 hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV) # Change to HSV
                 hsv[:, :, 2] = hsv[:, :, 2] * random.uniform(0.4, 1.2) # Convert back to RGB and append
                 images.append(cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB))
@@ -201,7 +207,6 @@ validation_generator = valid_generator(validation_observations, batch_size=batch
 from keras.models import Sequential
 from keras.layers import Flatten, Dense, Lambda, ELU, Dropout, Activation
 from keras.layers.convolutional import Convolution2D, Cropping2D, ZeroPadding2D, MaxPooling2D
-from keras.regularizers import l2
 
 # NVIDIA
 # model = Sequential()
@@ -241,6 +246,7 @@ model.add(Dropout(0.5))
 model.add(Convolution2D(24, 5, 5, border_mode='valid', activation='tanh', subsample=(1,2))) # -> (6,16,24)
 model.add(Dropout(0.5))
 model.add(Flatten()) # 6x16x24 -> 2304
+from keras.regularizers import l2
 model.add(Dense(30, activation='tanh', W_regularizer=l2(0.01)))
 model.add(Dropout(0.4))
 model.add(Dense(25, activation='tanh', W_regularizer=l2(0.01)))
@@ -253,12 +259,16 @@ model.compile(loss='mse', optimizer='adam')
 model.summary()
 
 nb_epoch = 8
-nb_val_samples = 2000
+samples_per_epoch = len(train_observations)
+nb_val_samples = len(train_observations)/20
+
+## backstop
+##sys.exit(0);
 
 ##history_object = model.fit(X_train, y_train, validation_split=0.20, shuffle=True, nb_epoch=5, \
 ##    verbose=1)
 
-history_object = model.fit_generator(train_generator, samples_per_epoch=len(train_observations), \
+history_object = model.fit_generator(train_generator, samples_per_epoch=samples_per_epoch, \
      validation_data=validation_generator, nb_val_samples=nb_val_samples, nb_epoch=nb_epoch, \
      verbose=1)
 
