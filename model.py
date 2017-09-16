@@ -102,7 +102,7 @@ train_observations, validation_observations = train_test_split(observations, tes
 print("Training/Validation/Total Observations {} {} {}".format(len(train_observations), \
       len(validation_observations), len(train_observations) + len(validation_observations)))
 
-batch_size = 128
+batch_size = 256
 
 # Start with train generator shared in the class and add image augmentations
 def train_generator(samples, batch_size=batch_size):
@@ -128,7 +128,7 @@ def train_generator(samples, batch_size=batch_size):
                 # 0.1 = 0.043 radians, according to
                 # https://hoganengineering.wixsite.com/randomforest/ \
                 #         single-post/2017/03/13/Alright-Squares-Lets-Talk-Triangles
-                correction = 0.2; # parameter to tune
+                correction = 0.25; # parameter to tune
 
                 steering_left = steering_center + correction
                 steering_right = steering_center - correction
@@ -201,63 +201,49 @@ validation_generator = valid_generator(validation_observations, batch_size=batch
 from keras.models import Sequential
 from keras.layers import Flatten, Dense, Lambda, ELU, Dropout, Activation
 from keras.layers.convolutional import Convolution2D, Cropping2D, ZeroPadding2D, MaxPooling2D
-
-$ try this model
-
+import tensorflow as tf
 tf.python.control_flow_ops = tf
+from keras.optimizers import Adam
+
 new_size_row = 64
 new_size_col = 64
 
+# Function to resize image
+def resize_image(image):
+    import tensorflow as tf
+    return tf.image.resize_images(image,[new_size_row,new_size_col])
+
+## try this model
 input_shape = (new_size_row, new_size_col, 3)
 
 filter_size = 3
-
 pool_size = (2,2)
 model = Sequential()
-#model.add(MaxPooling2D(pool_size=pool_size,input_shape=input_shape))
-model.add(Lambda(lambda x: x/255.-0.5,input_shape=input_shape))
 
-model.add(Convolution2D(3,1,1,
-                        border_mode='valid',
-                        name='conv0', init='he_normal'))
+model.add(Lambda(lambda x: x / 127.5 - 1.0, input_shape=(160,320,3))) # normalize and mean center
+##--## model.add(Lambda(lambda x: x/255.-0.5, input_shape=(160,320,3)))
+# Resise data within the neural network
+model.add(Lambda(resize_image))
+model.add(Convolution2D(3,1,1, border_mode='valid',name='conv0', init='he_normal'))
 model.add(ELU())
-
-model.add(Convolution2D(32,filter_size,filter_size,
-                        border_mode='valid',
-                        name='conv1', init='he_normal'))
+model.add(Convolution2D(32,filter_size,filter_size,border_mode='valid',name='conv1', init='he_normal'))
 model.add(ELU())
-model.add(Convolution2D(32,filter_size,filter_size,
-                        border_mode='valid',
-                        name='conv2', init='he_normal'))
+model.add(Convolution2D(32,filter_size,filter_size,border_mode='valid',name='conv2', init='he_normal'))
 model.add(ELU())
 model.add(MaxPooling2D(pool_size=pool_size))
 model.add(Dropout(0.5))
-
-model.add(Convolution2D(64,filter_size,filter_size,
-                        border_mode='valid',
-                        name='conv3', init='he_normal'))
+model.add(Convolution2D(64,filter_size,filter_size,border_mode='valid',name='conv3', init='he_normal'))
 model.add(ELU())
-
-model.add(Convolution2D(64,filter_size,filter_size,
-                        border_mode='valid',
-                        name='conv4', init='he_normal'))
-model.add(ELU())
-model.add(MaxPooling2D(pool_size=pool_size))
-
-model.add(Dropout(0.5))
-
-
-model.add(Convolution2D(128,filter_size,filter_size,
-                        border_mode='valid',
-                        name='conv5', init='he_normal'))
-model.add(ELU())
-model.add(Convolution2D(128,filter_size,filter_size,
-                        border_mode='valid',
-                        name='conv6', init='he_normal'))
+model.add(Convolution2D(64,filter_size,filter_size,border_mode='valid',name='conv4', init='he_normal'))
 model.add(ELU())
 model.add(MaxPooling2D(pool_size=pool_size))
 model.add(Dropout(0.5))
-
+model.add(Convolution2D(128,filter_size,filter_size,border_mode='valid',name='conv5', init='he_normal'))
+model.add(ELU())
+model.add(Convolution2D(128,filter_size,filter_size,border_mode='valid',name='conv6', init='he_normal'))
+model.add(ELU())
+model.add(MaxPooling2D(pool_size=pool_size))
+model.add(Dropout(0.5))
 
 model.add(Flatten())
 
@@ -275,10 +261,6 @@ model.add(Dense(1, name='output', init='he_normal'))
 adam = Adam(lr=1e-4, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
 model.compile(optimizer=adam, loss='mse')
 
-# # Function to resize image
-# def resize_image(image):
-#     import tensorflow as tf
-#     return tf.image.resize_images(image,[200,66])
 
 # NVIDIA
 # model = Sequential()
@@ -335,8 +317,8 @@ model.compile(optimizer=adam, loss='mse')
 
 model.summary()
 
-nb_epoch = 14
-samples_per_epoch = 20000
+nb_epoch = 8
+samples_per_epoch = 20224 ## multiple of 256
 nb_val_samples = samples_per_epoch*0.20
 
 history_object = model.fit_generator(train_generator, samples_per_epoch=samples_per_epoch, \
