@@ -7,6 +7,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import pandas as pd
 import sys
+import math
 
 def add_driving_data(path, total_list):
 
@@ -108,11 +109,9 @@ new_size_col = 64
 
 def cropScaleImage(image):
     shape = image.shape
-    # note: numpy arrays are (row, col)!
-    image = image[math.floor(60:shape[0]-20, 0:shape[1]]
+    image = image[math.floor(60):shape[0]-20, 0:shape[1]]  # note: numpy arrays are (row, col)!
     image = cv2.resize(image,(new_size_col,new_size_row), interpolation=cv2.INTER_AREA)
     return image
-
 
 # Start with train generator shared in the class and add image augmentations
 def train_generator(samples, batch_size=batch_size):
@@ -141,7 +140,7 @@ def train_generator(samples, batch_size=batch_size):
                 # 0.1 = 0.043 radians, according to
                 # https://hoganengineering.wixsite.com/randomforest/ \
                 #         single-post/2017/03/13/Alright-Squares-Lets-Talk-Triangles
-                correction = 0.25; # parameter to tune
+                correction = 0.20; # parameter to tune
 
                 steering_left = steering_center + correction
                 steering_right = steering_center - correction
@@ -161,8 +160,8 @@ def train_generator(samples, batch_size=batch_size):
                 images.append(image)
                 angles.append(angle)
 
-                # Randomly copy and flip selected images horizontally, with 75% probability
-                if random.random() <= 0.75:
+                # Randomly copy and flip selected images horizontally, with 90% probability
+                if random.random() <= 0.90:
                     images.append(np.fliplr(image))
                     angles.append(-angle)
 
@@ -221,6 +220,7 @@ from keras.optimizers import Adam
 
 # Function to resize image
 def resize_image(image):
+    import tensorflow as tf
     return tf.image.resize_images(image,[new_size_row,new_size_col])
 
 ## try this model
@@ -229,9 +229,7 @@ pool_size = (2,2)
 
 model = Sequential()
 model.add(Lambda(lambda x: x / 127.5 - 1.0, input_shape=(new_size_row, new_size_col, 3))) # normalize and mean center
-##--## model.add(Lambda(lambda x: x/255.-0.5, input_shape=(160,320,3)))
 # Resise data within the neural network
-model.add(Lambda(resize_image))
 model.add(Convolution2D(3,1,1, border_mode='valid',name='conv0', init='he_normal'))
 model.add(ELU())
 model.add(Convolution2D(32,filter_size,filter_size,border_mode='valid',name='conv1', init='he_normal'))
@@ -266,7 +264,7 @@ model.add(ELU())
 model.add(Dropout(0.5))
 model.add(Dense(1, name='output', init='he_normal'))
 
-adam = Adam(lr=1e-4, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+i##--##adam = Adam(lr=1e-4, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
 model.compile(optimizer=adam, loss='mse')
 
 
