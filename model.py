@@ -72,7 +72,7 @@ focused.extend(['./data/data-corrections'])
 focused.extend(['./data/bridge-repetitive'])
 for f in focused:
     times = 4
-    observations = add_driving_data(focused, observations)
+    observations = add_driving_data(f, observations)
 
     # turns_file = dset + '/' +  'driving_log.csv'
     #
