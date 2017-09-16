@@ -54,9 +54,9 @@ def add_driving_data(path, total_list):
     return total_list
 
 fnames = []
-fnames.extend(['data/lake-dataCCW'])
-fnames.extend(['data/data-CCW-AJL'])
-fnames.extend(['data/lake-dataCW'])
+fnames.extend(['./data/lake-dataCCW'])
+fnames.extend(['./data/data-CCW-AJL'])
+fnames.extend(['./data/lake-dataCW'])
 ##fnames.append(['./data/jungle-dataCCW'])([])
 
 observations = []
@@ -64,8 +64,8 @@ for f in fnames:
     observations = add_driving_data(f, observations)
 
 ## add and amplify dirt road and curve data, adding some minor jitter each time
-for dset in ['data/lake-dirtroad-turn-repetitive', 'data/lake-firstturn-repetitive', \
-    'data/data-corrections']:
+for dset in ['./data/lake-dirtroad-turn-repetitive', './data/lake-firstturn-repetitive', \
+    './data/lake-thirdturn-repetitive', './data/data-corrections']:
 
     times = 4
     turns_file = dset + '/' +  'driving_log.csv'
@@ -110,24 +110,18 @@ def train_generator(samples, batch_size=batch_size):
             # Read center, left and right images from a folder containing Udacity data and my data
             for batch_sample in batch_samples:
                 center_image = cv2.cvtColor(cv2.imread(batch_sample[0]), cv2.COLOR_BGR2RGB)
-                ##print("center img = {} shape = {}".format(batch_sample[0], center_image.shape))
                 left_image = cv2.cvtColor(cv2.imread(batch_sample[1]), cv2.COLOR_BGR2RGB)
-                ##print("left img = {} shape = {}".format(batch_sample[1], left_image.shape))
                 right_image = cv2.cvtColor(cv2.imread(batch_sample[2]), cv2.COLOR_BGR2RGB)
-                ##print("right img = {} shape = {}".format(batch_sample[2], right_image.shape))
-                # center_image = cv2.imread(batch_sample[0])
-                # left_image = cv2.imread(batch_sample[1])
-                # right_image = cv2.imread(batch_sample[2])
 
                 steering_center = float(batch_sample[3])
 
                 # Apply correction for left and right steering
-                correction = 0.2; # parameter to tune
-
                 # create adjusted steering measurements for the side camera images
                 # 0.1 = 0.043 radians, according to
                 # https://hoganengineering.wixsite.com/randomforest/ \
                 #         single-post/2017/03/13/Alright-Squares-Lets-Talk-Triangles
+                correction = 0.2; # parameter to tune
+
                 steering_left = steering_center + correction
                 steering_right = steering_center - correction
 
@@ -173,7 +167,6 @@ def train_generator(samples, batch_size=batch_size):
 
             X_train = np.array(images)
             y_train = np.array(angles)
-
             yield shuffle(X_train, y_train)
 
 def valid_generator(samples, batch_size=batch_size):
@@ -183,22 +176,16 @@ def valid_generator(samples, batch_size=batch_size):
             shuffle(samples)
             for offset in range(0, num_samples, batch_size):
                 batch_samples = samples[offset:offset + batch_size]
-
                 images = []
                 angles = []
-
-                #Validation generator center images only, no augmentation
+                #Validation generator: use center images only, no augmentation
                 for batch_sample in batch_samples:
-                    center_image = cv2.imread(batch_sample[0])
-                    center_image = cv2.cvtColor(center_image, cv2.COLOR_BGR2RGB)
+                    center_image = cv2.cvtColor(cv2.imread(batch_sample[0]), cv2.COLOR_BGR2RGB)
                     images.append(center_image)
                     angles.append(float(batch_sample[3]))
-
                 X_train = np.array(images)
                 y_train = np.array(angles)
-
                 yield shuffle(X_train, y_train)
-
 
 train_generator = train_generator(train_observations, batch_size=batch_size)
 validation_generator = valid_generator(validation_observations, batch_size=batch_size)
@@ -259,13 +246,7 @@ model.summary()
 
 nb_epoch = 8
 samples_per_epoch = len(train_observations)
-nb_val_samples = len(train_observations)/20
-
-## backstop
-##sys.exit(0);
-
-##history_object = model.fit(X_train, y_train, validation_split=0.20, shuffle=True, nb_epoch=5, \
-##    verbose=1)
+nb_val_samples = len(train_observations)*0.20
 
 history_object = model.fit_generator(train_generator, samples_per_epoch=samples_per_epoch, \
      validation_data=validation_generator, nb_val_samples=nb_val_samples, nb_epoch=nb_epoch, \
