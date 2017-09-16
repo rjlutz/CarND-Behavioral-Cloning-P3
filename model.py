@@ -244,8 +244,8 @@ model.compile(loss='mse', optimizer='adam')
 
 model.summary()
 
-nb_epoch = 8
-samples_per_epoch = len(train_observations)
+nb_epoch = 20
+samples_per_epoch = 20000
 nb_val_samples = len(train_observations)*0.20
 
 history_object = model.fit_generator(train_generator, samples_per_epoch=samples_per_epoch, \
