@@ -38,6 +38,7 @@ def add_driving_data(path, total_list):
         paths.append(path + '/IMG/' + filenames[2])
 
         ## Straightest steering - undersample by 20%
+        # inspiration from https://github.com/priya-dwivedi/CarND/tree/master/CarND-Behavior-Cloning-P3
         if (abs(steering_center) < 0.02 and random.random() <= 0.80):
             straight_list.append([paths[0], paths[1], paths[2], steering_center])
         # right turning, duplicate and tweak a little
@@ -63,7 +64,6 @@ fnames.extend(['./data/lake-dataCCW'])
 fnames.extend(['./data/data-CCW-AJL'])
 fnames.extend(['./data/lake-dataCW'])
 fnames.extend(['./data/lake-dataCCW'])
-##fnames.append(['./data/jungle-dataCCW'])([])
 
 observations = []
 for f in fnames:
@@ -117,8 +117,6 @@ def plotRandomImage(dset, name, title):
 plotRandomImage(train_observations, 'example-camera-images.png', 'L/R/C')
 
 batch_size = 128
-new_size_row = 64
-new_size_col = 64
 
 # Start with train generator shared in the class and add image augmentations
 def train_generator(samples, batch_size=batch_size):
@@ -186,11 +184,9 @@ def train_generator(samples, batch_size=batch_size):
 
                 # Randomly shadow image and add to images with 80% probability
                 ## inspiration from https://github.com/naokishibuya/car-behavioral-cloning/blob/master/utils.py
-                w = 320
-                h = 160
-                x1, y1 = w * np.random.rand(), 0
-                x2, y2 = w * np.random.rand(), h
-                xm, ym = np.mgrid[0:h, 0:w] # xm, ym gives all the locations of the image
+                x1, y1 = image.shape[1] * np.random.rand(), 0
+                x2, y2 = image.shape[1] * np.random.rand(), image.shape[0]
+                xm, ym = np.mgrid[0:image.shape[0], 0:image.shape[1]] # xm, ym gives all the locations of the image
                 mask = np.zeros_like(image[:, :, 1])
                 mask[(ym - y1) * (x2 - x1) - (y2 - y1) * (xm - x1) > 0] = 1
 
@@ -201,7 +197,7 @@ def train_generator(samples, batch_size=batch_size):
                 # adjust Saturation in HLS(Hue, Light, Saturation)
                 hls = cv2.cvtColor(image, cv2.COLOR_RGB2HLS)
                 hls[:, :, 1][cond] = hls[:, :, 1][cond] * s_ratio
-                shadow_image =  cv2.cvtColor(hls, cv2.COLOR_HLS2RGB)
+                shadow_image = cv2.cvtColor(hls, cv2.COLOR_HLS2RGB)
                 if random.random() <= 0.80:
                     images.append(shadow_image)
                     angles.append(angle)
@@ -227,8 +223,7 @@ def valid_generator(samples, batch_size=batch_size):
                 angles = []
                 #Validation generator: use center images only, no augmentation
                 for batch_sample in batch_samples:
-                    center_image = cv2.cvtColor(cv2.imread(batch_sample[0]), cv2.COLOR_BGR2RGB)
-                    images.append(center_image)
+                    images.append(cv2.cvtColor(cv2.imread(batch_sample[0]), cv2.COLOR_BGR2RGB))
                     angles.append(float(batch_sample[3]))
                 X_train = np.array(images)
                 y_train = np.array(angles)
@@ -242,11 +237,10 @@ from keras.layers import Flatten, Dense, Lambda, ELU, Dropout, Activation
 from keras.layers.convolutional import Convolution2D, Cropping2D, ZeroPadding2D, MaxPooling2D
 import tensorflow as tf
 tf.python.control_flow_ops = tf
-from keras.optimizers import Adam
+##from keras.optimizers import Adam
 
 # NVIDIA, modified, inspiration from https://github.com/naokishibuya/car-behavioral-cloning
 model = Sequential()
-
 model.add(Lambda(lambda x: x / 127.5 - 1.0, input_shape=(160,320,3))) # normalize and mean center
 model.add(Cropping2D(cropping=((60,25),(0,0))))
 model.add(Convolution2D(24,5,5,subsample=(2,2),activation="elu"))
@@ -254,44 +248,18 @@ model.add(Convolution2D(36,5,5,subsample=(2,2),activation="elu"))
 model.add(Convolution2D(48,5,5,subsample=(2,2),activation='elu'))
 model.add(Convolution2D(64,3,3,activation='elu'))
 model.add(Convolution2D(64,3,3,activation='elu'))
-
 model.add(Flatten())
 model.add(Dropout(0.5))
-
-model.add(Dense(100,activation='elu'))
-model.add(Dense(50,activation='elu'))
-model.add(Dense(10,activation='elu'))
+model.add(Dense(100),activation='elu')
+model.add(Dense(50),activation='elu')
+model.add(Dense(10),activation='elu')
 model.add(Dense(1))
 model.compile(loss='mse', optimizer=Adam(lr=1.0e-4))
-
-# model = Sequential()
-# model.add(Lambda(lambda x: x / 127.5 - 1.0, input_shape=(160, 320, 3))) # normalize and mean center
-# model.add(Cropping2D(cropping=((60,25),(0,0))))
-# model.add(Convolution2D(8, 5, 5, border_mode='valid', activation='tanh')) # -> (66,316,8)
-# model.add(Dropout(0.5))
-# model.add(Convolution2D(16, 5, 5, border_mode='valid', activation='tanh', subsample=(2,2))) # -> (31,156,16)
-# model.add(Dropout(0.5))
-# model.add(Convolution2D(20, 5, 5, border_mode='valid', activation='tanh', subsample=(2,2))) # -> (14,76,20)
-# model.add(Dropout(0.5))
-# model.add(Convolution2D(24, 5, 5, border_mode='valid', activation='tanh', subsample=(1,2))) # -> (10,36,24)
-# model.add(Dropout(0.5))
-# model.add(Convolution2D(24, 5, 5, border_mode='valid', activation='tanh', subsample=(1,2))) # -> (6,16,24)
-# model.add(Dropout(0.5))
-# model.add(Flatten()) # 6x16x24 -> 2304
-# from keras.regularizers import l2
-# model.add(Dense(30, activation='tanh', W_regularizer=l2(0.01)))
-# model.add(Dropout(0.4))
-# model.add(Dense(25, activation='tanh', W_regularizer=l2(0.01)))
-# model.add(Dropout(0.3))
-# model.add(Dense(20, activation='tanh', W_regularizer=l2(0.01)))
-# model.add(Dropout(0.2))
-# model.add(Dense(1, activation='tanh', W_regularizer=l2(0.01)))
-# model.compile(loss='mse', optimizer='adam')
 
 model.summary()
 
 nb_epoch = 15
-samples_per_epoch = 30720
+samples_per_epoch = 20224
 nb_val_samples = samples_per_epoch*0.20
 
 history_object = model.fit_generator(train_generator, samples_per_epoch=samples_per_epoch, \
