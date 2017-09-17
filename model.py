@@ -195,9 +195,9 @@ def train_generator(samples, batch_size=batch_size):
                 skip = 100 ## interval
                 if offset % skip == 0 and i == 0:
                     plotImageTrio(center_image, left_image, right_image,
-                    './diagnostic_images/training_generator_LRC_{0:.0f}.png'.format(offset * batch_size),
+                    './diagnostic_images/training_generator_LRC_{0:.0f}.png'.format(offset),
                     'Periodic selection (index: {}) from training generator.\n Steering L/C/R = {:.2f} {:.2f} {:.2f}'
-                    .format(offset * batch_size, steering_left, steering_center, steering_right))
+                    .format(offset, steering_left, steering_center, steering_right))
 
                 # Randomly copy and flip selected images horizontally, with 90% probability
                 flipped_image = np.fliplr(image)
@@ -245,9 +245,9 @@ def train_generator(samples, batch_size=batch_size):
 
                 if offset % skip == 0 and i == 0:
                     plotImageTrio(flipped_image, bright_image, shadow_image,
-                               './diagnostic_images/training_generator_augmented-{0:.0f}.png'.format(offset * batch_size),
+                               './diagnostic_images/training_generator_augmented-{0:.0f}.png'.format(offset),
                                'Periodic selection (index: {}) from training generator.\n Augmented Flipped/Brightened/Shadow'
-                               .format(offset * batch_size))
+                               .format(offset))
 
             X_train = np.array(images)
             y_train = np.array(angles)
