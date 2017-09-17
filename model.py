@@ -255,7 +255,7 @@ model.compile(loss='mse', optimizer=Adam(lr=1.0e-4))
 model.summary()
 
 history_object = model.fit_generator(train_generator, samples_per_epoch=20224, \
-     validation_data=validation_generator, nb_val_samples=samples_per_epoch*0.20, \
+     validation_data=validation_generator, nb_val_samples=20224*0.20, \
      nb_epoch=10, verbose=1)
 
 model.save('model.h5')
