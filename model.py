@@ -64,10 +64,6 @@ fnames.extend(['./data/data-CCW-AJL'])
 fnames.extend(['./data/lake-dataCW'])
 fnames.extend(['./data/lake-dataCCW'])
 
-observations = []
-for f in fnames:
-    observations = add_driving_data(f, observations)
-
 ## add and amplify dirt road and curve data, adding some minor jitter each time
 focused = []
 focused.extend(['./data/lake-dirtroad-turn-repetitive'])
@@ -75,6 +71,10 @@ focused.extend(['./data/lake-firstturn-repetitive'])
 focused.extend(['./data/lake-thirdturn-repetitive'])
 focused.extend(['./data/data-corrections'])
 focused.extend(['./data/bridge-repetitive'])
+
+observations = []
+for f in fnames:
+    observations = add_driving_data(f, observations)
 for f in focused:
     times = 4
     for i in range(times):
@@ -254,13 +254,9 @@ model.compile(loss='mse', optimizer=Adam(lr=1.0e-4))
 
 model.summary()
 
-nb_epoch = 15
-samples_per_epoch = 20224
-nb_val_samples = samples_per_epoch*0.20
-
-history_object = model.fit_generator(train_generator, samples_per_epoch=samples_per_epoch, \
-     validation_data=validation_generator, nb_val_samples=nb_val_samples, nb_epoch=nb_epoch, \
-     verbose=1)
+history_object = model.fit_generator(train_generator, samples_per_epoch=20224, \
+     validation_data=validation_generator, nb_val_samples=samples_per_epoch*0.20, \
+     nb_epoch=10, verbose=1)
 
 model.save('model.h5')
 
