@@ -22,6 +22,10 @@ def add_driving_data(path, total_list):
             lines.append(line)
 
     for line in lines:
+
+        if float(line[4]) < 0.25: ## skip if little or no throttle
+            continue
+
         filenames = []
         for i in range(3):
             filenames.append(line[i].split('/')[-1])
@@ -103,15 +107,42 @@ train_observations, validation_observations = train_test_split(observations, tes
 print("Training/Validation/Total Observations {} {} {}".format(len(train_observations), \
       len(validation_observations), len(train_observations) + len(validation_observations)))
 
+def cropScaleImage(image):
+    # shape = image.shape
+    # image = image[math.floor(60):shape[0]-20, 0:shape[1]]  # note: numpy arrays are (row, col)!
+    # image = cv2.resize(image,(new_size_col,new_size_row), interpolation=cv2.INTER_AREA)
+    return image
+
+def plotImageTrio(c, l, r, name, title):
+    fig = plt.figure()
+    plt.subplot(1,3,1)
+    plt.imshow(l);
+    plt.axis('off')
+    plt.subplot(1,3,2)
+    plt.imshow(c);
+    plt.axis('off')
+    plt.title(title)
+    plt.subplot(1,3,3)
+    plt.imshow(r);
+    plt.axis('off');
+    plt.savefig(name);
+    plt.close(fig)
+
+def plotRandomImage(dset, name, title):
+    ind_num = random.randint(0,len(train_observations))
+    observation = dset[ind_num]
+    image_c = cv2.cvtColor(cv2.imread(observation[0]), cv2.COLOR_BGR2RGB)
+    image_l = cv2.cvtColor(cv2.imread(observation[1]), cv2.COLOR_BGR2RGB)
+    image_r = cv2.cvtColor(cv2.imread(observation[2]), cv2.COLOR_BGR2RGB)
+    plotImageTrio(image_c, image_l, image_r, name, title)
+
+
+# visual validation of data set
+plotRandomImage(train_observations, 'example-camera-images.png', 'L/R/C')
+
 batch_size = 256
 new_size_row = 64
 new_size_col = 64
-
-def cropScaleImage(image):
-    shape = image.shape
-    image = image[math.floor(60):shape[0]-20, 0:shape[1]]  # note: numpy arrays are (row, col)!
-    image = cv2.resize(image,(new_size_col,new_size_row), interpolation=cv2.INTER_AREA)
-    return image
 
 # Start with train generator shared in the class and add image augmentations
 def train_generator(samples, batch_size=batch_size):
@@ -125,7 +156,8 @@ def train_generator(samples, batch_size=batch_size):
             images = []
             angles = []
             # Read center, left and right images from a folder containing Udacity data and my data
-            for batch_sample in batch_samples:
+            for i in range(len(batch_samples)):
+                batch_sample = batch_samples[i]
                 center_image = cv2.cvtColor(cv2.imread(batch_sample[0]), cv2.COLOR_BGR2RGB)
                 left_image = cv2.cvtColor(cv2.imread(batch_sample[1]), cv2.COLOR_BGR2RGB)
                 right_image = cv2.cvtColor(cv2.imread(batch_sample[2]), cv2.COLOR_BGR2RGB)
@@ -160,30 +192,62 @@ def train_generator(samples, batch_size=batch_size):
                 images.append(image)
                 angles.append(angle)
 
+                skip = 100 ## interval
+                if offset % skip == 0 and i == 0:
+                    plotImageTrio(center_image, left_image, right_image,
+                    './diagnostic_images/training_generator_LRC_{0:.0f}.png'.format(offset * batch_size),
+                    'Periodic selection (index: {}) from training generator.\n Steering L/C/R = {:.2f} {:.2f} {:.2f}'
+                    .format(offset * batch_size, steering_left, steering_center, steering_right))
+
                 # Randomly copy and flip selected images horizontally, with 90% probability
+                flipped_image = np.fliplr(image)
                 if random.random() <= 0.90:
-                    images.append(np.fliplr(image))
+                    images.append(flipped_image)
                     angles.append(-angle)
 
                 hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV) # Change to HSV
                 hsv[:, :, 2] = hsv[:, :, 2] * random.uniform(0.4, 1.2) # Convert back to RGB and append
-                images.append(cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB))
+                bright_image = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
+                images.append(bright_image)
                 angles.append(angle)
 
-                # Randomly shear image with 80% probability
+                # Randomly shadow image with 80% probability
+                ## inspiration from https://github.com/naokishibuya/car-behavioral-cloning/blob/master/utils.py
+                w = 320
+                h = 160
+                x1, y1 = w * np.random.rand(), 0
+                x2, y2 = w * np.random.rand(), h
+                xm, ym = np.mgrid[0:h, 0:w] # xm, ym gives all the locations of the image
+                mask = np.zeros_like(image[:, :, 1])
+                mask[(ym - y1) * (x2 - x1) - (y2 - y1) * (xm - x1) > 0] = 1
+
+                # choose which side should have shadow and adjust saturation
+                cond = mask == np.random.randint(2)
+                s_ratio = np.random.uniform(low=0.2, high=0.5)
+
+                # adjust Saturation in HLS(Hue, Light, Saturation)
+                hls = cv2.cvtColor(image, cv2.COLOR_RGB2HLS)
+                hls[:, :, 1][cond] = hls[:, :, 1][cond] * s_ratio
+                shadow_image =  cv2.cvtColor(hls, cv2.COLOR_HLS2RGB)
+                # shear_range = 40
+                # rows, cols, channels = image.shape
+                # dx = np.random.randint(-shear_range, shear_range + 1)
+                # random_point = [cols / 2 + dx, rows / 2]
+                # pts1 = np.float32([[0, rows], [cols, rows], [cols / 2, rows / 2]])
+                # pts2 = np.float32([[0, rows], [cols, rows], random_point])
+                # dsteering = dx / (rows / 2) * 360 / (2 * np.pi * 25.0) / 10.0
+                # M = cv2.getAffineTransform(pts1, pts2)
+                # shear_image = cv2.warpAffine(center_image, M, (cols, rows), borderMode=1)
+                # shear_angle = angle + dsteering
                 if random.random() <= 0.80:
-                    shear_range = 40
-                    rows, cols, channels = image.shape
-                    dx = np.random.randint(-shear_range, shear_range + 1)
-                    random_point = [cols / 2 + dx, rows / 2]
-                    pts1 = np.float32([[0, rows], [cols, rows], [cols / 2, rows / 2]])
-                    pts2 = np.float32([[0, rows], [cols, rows], random_point])
-                    dsteering = dx / (rows / 2) * 360 / (2 * np.pi * 25.0) / 10.0
-                    M = cv2.getAffineTransform(pts1, pts2)
-                    shear_image = cv2.warpAffine(center_image, M, (cols, rows), borderMode=1)
-                    shear_angle = angle + dsteering
-                    images.append(shear_image)
-                    angles.append(shear_angle)
+                    images.append(shadow_image)
+                    angles.append(angle)
+
+                if offset % skip == 0 and i == 0:
+                    plotImageTrio(flipped_image, bright_image, shadow_image,
+                               './diagnostic_images/training_generator_augmented-{0:.0f}.png'.format(offset * batch_size),
+                               'Periodic selection (index: {}) from training generator.\n Augmented Flipped/Brightened/Shadow'
+                               .format(offset * batch_size))
 
             X_train = np.array(images)
             y_train = np.array(angles)
@@ -218,54 +282,54 @@ import tensorflow as tf
 tf.python.control_flow_ops = tf
 from keras.optimizers import Adam
 
-# Function to resize image
-def resize_image(image):
-    import tensorflow as tf
-    return tf.image.resize_images(image,[new_size_row,new_size_col])
-
-## try this model
-filter_size = 3
-pool_size = (2,2)
-
-model = Sequential()
-model.add(Lambda(lambda x: x / 127.5 - 1.0, input_shape=(new_size_row, new_size_col, 3))) # normalize and mean center
-# Resise data within the neural network
-model.add(Convolution2D(3,1,1, border_mode='valid',name='conv0', init='he_normal'))
-model.add(ELU())
-model.add(Convolution2D(32,filter_size,filter_size,border_mode='valid',name='conv1', init='he_normal'))
-model.add(ELU())
-model.add(Convolution2D(32,filter_size,filter_size,border_mode='valid',name='conv2', init='he_normal'))
-model.add(ELU())
-model.add(MaxPooling2D(pool_size=pool_size))
-model.add(Dropout(0.5))
-model.add(Convolution2D(64,filter_size,filter_size,border_mode='valid',name='conv3', init='he_normal'))
-model.add(ELU())
-model.add(Convolution2D(64,filter_size,filter_size,border_mode='valid',name='conv4', init='he_normal'))
-model.add(ELU())
-model.add(MaxPooling2D(pool_size=pool_size))
-model.add(Dropout(0.5))
-model.add(Convolution2D(128,filter_size,filter_size,border_mode='valid',name='conv5', init='he_normal'))
-model.add(ELU())
-model.add(Convolution2D(128,filter_size,filter_size,border_mode='valid',name='conv6', init='he_normal'))
-model.add(ELU())
-model.add(MaxPooling2D(pool_size=pool_size))
-model.add(Dropout(0.5))
-
-model.add(Flatten())
-
-model.add(Dense(512,name='hidden1', init='he_normal'))
-model.add(ELU())
-model.add(Dropout(0.5))
-model.add(Dense(64,name='hidden2', init='he_normal'))
-model.add(ELU())
-model.add(Dropout(0.5))
-model.add(Dense(16,name='hidden3',init='he_normal'))
-model.add(ELU())
-model.add(Dropout(0.5))
-model.add(Dense(1, name='output', init='he_normal'))
-
-i##--##adam = Adam(lr=1e-4, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
-model.compile(optimizer=adam, loss='mse')
+# # Function to resize image
+# def resize_image(image):
+#     import tensorflow as tf
+#     return tf.image.resize_images(image,[new_size_row,new_size_col])
+#
+# ## try this model
+# filter_size = 3
+# pool_size = (2,2)
+#
+# model = Sequential() ## Vivek
+# model.add(Lambda(lambda x: x / 127.5 - 1.0, input_shape=(new_size_row, new_size_col, 3))) # normalize and mean center
+# # Resise data within the neural network
+# model.add(Convolution2D(3,1,1, border_mode='valid',name='conv0', init='he_normal'))
+# model.add(ELU())
+# model.add(Convolution2D(32,filter_size,filter_size,border_mode='valid',name='conv1', init='he_normal'))
+# model.add(ELU())
+# model.add(Convolution2D(32,filter_size,filter_size,border_mode='valid',name='conv2', init='he_normal'))
+# model.add(ELU())
+# model.add(MaxPooling2D(pool_size=pool_size))
+# model.add(Dropout(0.5))
+# model.add(Convolution2D(64,filter_size,filter_size,border_mode='valid',name='conv3', init='he_normal'))
+# model.add(ELU())
+# model.add(Convolution2D(64,filter_size,filter_size,border_mode='valid',name='conv4', init='he_normal'))
+# model.add(ELU())
+# model.add(MaxPooling2D(pool_size=pool_size))
+# model.add(Dropout(0.5))
+# model.add(Convolution2D(128,filter_size,filter_size,border_mode='valid',name='conv5', init='he_normal'))
+# model.add(ELU())
+# model.add(Convolution2D(128,filter_size,filter_size,border_mode='valid',name='conv6', init='he_normal'))
+# model.add(ELU())
+# model.add(MaxPooling2D(pool_size=pool_size))
+# model.add(Dropout(0.5))
+#
+# model.add(Flatten())
+#
+# model.add(Dense(512,name='hidden1', init='he_normal'))
+# model.add(ELU())
+# model.add(Dropout(0.5))
+# model.add(Dense(64,name='hidden2', init='he_normal'))
+# model.add(ELU())
+# model.add(Dropout(0.5))
+# model.add(Dense(16,name='hidden3',init='he_normal'))
+# model.add(ELU())
+# model.add(Dropout(0.5))
+# model.add(Dense(1, name='output', init='he_normal'))
+#
+# i##--##adam = Adam(lr=1e-4, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+# model.compile(optimizer='adam', loss='mse')
 
 
 # NVIDIA
@@ -297,34 +361,34 @@ model.compile(optimizer=adam, loss='mse')
 # model.add(Dense(1))
 # model.compile(loss='mse', optimizer='adam')
 
-# model = Sequential()
-# model.add(Lambda(lambda x: x / 127.5 - 1.0, input_shape=(160,320,3))) # normalize and mean center
-# model.add(Cropping2D(cropping=((70,25),(0,0))))
-# model.add(Convolution2D(8, 5, 5, border_mode='valid', activation='tanh')) # -> (66,316,8)
-# model.add(Dropout(0.5))
-# model.add(Convolution2D(16, 5, 5, border_mode='valid', activation='tanh', subsample=(2,2))) # -> (31,156,16)
-# model.add(Dropout(0.5))
-# model.add(Convolution2D(20, 5, 5, border_mode='valid', activation='tanh', subsample=(2,2))) # -> (14,76,20)
-# model.add(Dropout(0.5))
-# model.add(Convolution2D(24, 5, 5, border_mode='valid', activation='tanh', subsample=(1,2))) # -> (10,36,24)
-# model.add(Dropout(0.5))
-# model.add(Convolution2D(24, 5, 5, border_mode='valid', activation='tanh', subsample=(1,2))) # -> (6,16,24)
-# model.add(Dropout(0.5))
-# model.add(Flatten()) # 6x16x24 -> 2304
-# from keras.regularizers import l2
-# model.add(Dense(30, activation='tanh', W_regularizer=l2(0.01)))
-# model.add(Dropout(0.4))
-# model.add(Dense(25, activation='tanh', W_regularizer=l2(0.01)))
-# model.add(Dropout(0.3))
-# model.add(Dense(20, activation='tanh', W_regularizer=l2(0.01)))
-# model.add(Dropout(0.2))
-# model.add(Dense(1, activation='tanh', W_regularizer=l2(0.01)))
-# model.compile(loss='mse', optimizer='adam')
+model = Sequential()
+model.add(Lambda(lambda x: x / 127.5 - 1.0, input_shape=(160, 320, 3))) # normalize and mean center
+model.add(Cropping2D(cropping=((60,25),(0,0))))
+model.add(Convolution2D(8, 5, 5, border_mode='valid', activation='tanh')) # -> (66,316,8)
+model.add(Dropout(0.5))
+model.add(Convolution2D(16, 5, 5, border_mode='valid', activation='tanh', subsample=(2,2))) # -> (31,156,16)
+model.add(Dropout(0.5))
+model.add(Convolution2D(20, 5, 5, border_mode='valid', activation='tanh', subsample=(2,2))) # -> (14,76,20)
+model.add(Dropout(0.5))
+model.add(Convolution2D(24, 5, 5, border_mode='valid', activation='tanh', subsample=(1,2))) # -> (10,36,24)
+model.add(Dropout(0.5))
+model.add(Convolution2D(24, 5, 5, border_mode='valid', activation='tanh', subsample=(1,2))) # -> (6,16,24)
+model.add(Dropout(0.5))
+model.add(Flatten()) # 6x16x24 -> 2304
+from keras.regularizers import l2
+model.add(Dense(30, activation='tanh', W_regularizer=l2(0.01)))
+model.add(Dropout(0.4))
+model.add(Dense(25, activation='tanh', W_regularizer=l2(0.01)))
+model.add(Dropout(0.3))
+model.add(Dense(20, activation='tanh', W_regularizer=l2(0.01)))
+model.add(Dropout(0.2))
+model.add(Dense(1, activation='tanh', W_regularizer=l2(0.01)))
+model.compile(loss='mse', optimizer='adam')
 
 model.summary()
 
-nb_epoch = 8
-samples_per_epoch = 20224 ## multiple of 256
+nb_epoch = 15
+samples_per_epoch = 30720
 nb_val_samples = samples_per_epoch*0.20
 
 history_object = model.fit_generator(train_generator, samples_per_epoch=samples_per_epoch, \
