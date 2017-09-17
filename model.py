@@ -3,11 +3,10 @@ import cv2
 import numpy as np
 import random
 import matplotlib
-matplotlib.use('Agg')
+matplotlib.use('Agg') ## needed for lights-out plotting
 import matplotlib.pyplot as plt
-import pandas as pd
-import sys
-import math
+
+batch_size = 128
 
 def add_driving_data(path, total_list):
 
@@ -112,11 +111,8 @@ def plotRandomImage(dset, name, title):
     image_r = cv2.cvtColor(cv2.imread(observation[2]), cv2.COLOR_BGR2RGB)
     plotImageTrio(image_c, image_l, image_r, name, title)
 
-
 # visual validation of data set
 plotRandomImage(train_observations, 'example-camera-images.png', 'L/R/C')
-
-batch_size = 128
 
 # Start with train generator shared in the class and add image augmentations
 def train_generator(samples, batch_size=batch_size):
@@ -237,7 +233,7 @@ from keras.layers import Flatten, Dense, Lambda, ELU, Dropout, Activation
 from keras.layers.convolutional import Convolution2D, Cropping2D, ZeroPadding2D, MaxPooling2D
 import tensorflow as tf
 tf.python.control_flow_ops = tf
-##from keras.optimizers import Adam
+from keras.optimizers import Adam
 
 # NVIDIA, modified, inspiration from https://github.com/naokishibuya/car-behavioral-cloning
 model = Sequential()
@@ -250,9 +246,9 @@ model.add(Convolution2D(64,3,3,activation='elu'))
 model.add(Convolution2D(64,3,3,activation='elu'))
 model.add(Flatten())
 model.add(Dropout(0.5))
-model.add(Dense(100),activation='elu')
-model.add(Dense(50),activation='elu')
-model.add(Dense(10),activation='elu')
+model.add(Dense(100,activation='elu'))
+model.add(Dense(50,activation='elu'))
+model.add(Dense(10,activation='elu'))
 model.add(Dense(1))
 model.compile(loss='mse', optimizer=Adam(lr=1.0e-4))
 
