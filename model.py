@@ -242,7 +242,7 @@ from keras.layers import Flatten, Dense, Lambda, ELU, Dropout, Activation
 from keras.layers.convolutional import Convolution2D, Cropping2D, ZeroPadding2D, MaxPooling2D
 import tensorflow as tf
 tf.python.control_flow_ops = tf
-##from keras.optimizers import Adam
+from keras.optimizers import Adam
 
 # NVIDIA, modified, inspiration from https://github.com/naokishibuya/car-behavioral-cloning
 model = Sequential()
@@ -258,9 +258,9 @@ model.add(Convolution2D(64,3,3,activation='elu'))
 model.add(Flatten())
 model.add(Dropout(0.5))
 
-model.add(Dense(100),activation='elu')
-model.add(Dense(50),activation='elu')
-model.add(Dense(10),activation='elu')
+model.add(Dense(100,activation='elu'))
+model.add(Dense(50,activation='elu'))
+model.add(Dense(10,activation='elu'))
 model.add(Dense(1))
 model.compile(loss='mse', optimizer=Adam(lr=1.0e-4))
 
