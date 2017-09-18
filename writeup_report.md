@@ -1,9 +1,8 @@
 
 # Behavioral Cloning Project P3
 
-# TODO add L/C/R and flipped/bright/shadow
 
-This project was developed to fulfill Project 3 (Term 1) of the Udacity Self-Driving Car Engineer Nanodegree Program
+This project was developed to fulfill Project 3 (Term 1) of the Udacity Self-Driving Car Engineer Nanodegree Program.
 
 The goals / steps of this project are the following:
 * Use the simulator to collect data of good driving behavior
@@ -31,31 +30,73 @@ My project includes the following files:
 * model.h5 containing a trained convolution neural network
 * writeup_report.md summarizing the results
 
+#### Creation of the Training Set & Training Process
+
+To capture good driving behavior, I first attempted to record two laps on the lake track using center lane driving. I found this hard to do with the keyboard or mouse controls.
+
+Since I found this difficult to do, I decided to modify the simulator so that I could capture training data with a gamepad controller. Due to immediate availability, I selected the Logitech F310.
+
+Once I established connectivity from the usb controller, I modified the simulator to map these inputs from the gamepad:
+
+
+| Control        | Function |
+| ------------- |:-------------:|
+| Left Stick (up/down)     | Throttle  |
+| Right Stick (left/right)     | Steering |
+| DPad (up/down)| Adjust max cruise speed|
+| X Button (blue) | Save this position    |
+| Y Button (yellow) | Teleport to saved location |
+| A Button (green) | cruise on/off |
+| B Button (red) | toggle recording |
+
+Once I enabled these improvements, the control was much better. As I was still debugging the model and running off the road, I enlisted the help of a 'stunt driver'. I asked my son to record a session since he's much more practiced with a gamepad!
+
+Here is an example of the modified sim in action:
+
+|Capturing Training Data|
+|:--------:|
+|[![alt](training-thumb640x480.png)]|
+[Link to YouTube Video](https://youtu.be/3y3MOZyYXRQ)
+
+My modified simulator code can be found [here](https://github.com/rjlutz/self-driving-car-sim)
+
 ## Data Pipeline
 
 The model.py file contains the code for preprocessing images, augmenting the data, training the model and saving the convolution neural network. The preprocessing steps and model description are described as follows.
 
-  * Data collection
-    After the collection process, I had X number of data points. I then preprocessed this data by ...
-  * Data Preprocessing Steps
-    1.  datasets are provided
-    2.  data are read from driving_log.csv for datasets
-    3.  observations with little or no throttle are discarded
-    4.  paths for left/center/right camera images are rewritten to use relative paths, for easy porting to Amazon AWS
-    5.  observations with straight steering angles are under-sampled by 20%
-    6. observations with significant left or right steering angles are oversampled through duplication. Jitter is applied to the copy by perturbing the angles slightly
-    7. data collected in problem areas (turns, bridge) are oversampled by repeating each 4 times
-    8. final observation set is shuffled
+* Data Preprocessing Steps
+  1.  datasets are provided
+  2.  data are read from driving_log.csv for datasets
+  3.  observations with little or no throttle are discarded
+  4.  paths for left/center/right camera images are rewritten to use relative paths, for easy porting to Amazon AWS or other execution platforms
+  5.  observations with straight steering angles are under-sampled by 20%
+  6. observations with significant left or right steering angles are oversampled through duplication. Jitter is applied to the copies by perturbing the angles slightly
+  7. data collected in problem areas (turns, bridge) are oversampled by repeating each four times
+  8. final observation set is shuffled
 
-  * Data is subdivided; 80% is retained for training and 20% is retained for validation. Data is not split for testing purposes as the tests will be conducted interactively in the simulator provided
-  * Augmenting The Training Data
+These are examples of the left, center and right images that are captured:
+
+![alt](diagnostic_images/training_generator_LRC_6400.png)
+![alt](diagnostic_images/training_generator_LRC_48000.png)
+
+* Data Subdivision
+
+  80% is retained for training and 20% is retained for validation. Data is not split for testing purposes as the tests will be conducted interactively in the simulator provided
+
+* Augmenting The Training Data
+
   A generator is used to extract batches of samples used in model training. The steps followed to build each batch are:
-    1. The full set of training samples are shuffled
-    2. A left camera, right camera, or center camera image is selected randomly to represent each observation in the batch. Left and right images are joined by a +/- adjustment 0.2 to the steering angle, respectively. Center images are provided with the unchanged steering angle.
-    3. The selected image is flipped and then added to the batch, with probability of addition of 0.90. The steering angle is negated and added along with the flipped image.
-    4.  A copy of the the image is brightened and added to the batch, along with the associated steering angle.
-    5. A synthetic shadow is added to a copy of the image, by randomly choosing a bisection line across the image and darkening the image under one side. The shadow image is added to the batch with 0.80 probability.
-    6. The batch is shuffled
+  1. The full set of training samples are shuffled
+  2. A left camera, right camera, or center camera image is selected randomly to represent each observation in the batch. Left and right images are joined by a +/- adjustment 0.2 to the steering angle, respectively. Center images are provided with the unchanged steering angle.
+  3. The selected image is flipped and then added to the batch, with probability of addition of 0.90. The steering angle is negated and added along with the flipped image.
+  4.  A copy of the the image is brightened and added to the batch, along with the associated steering angle.
+  5. A synthetic shadow is added to a copy of the image, by randomly choosing a bisection line across the image and darkening the image under one side. The shadow image is added to the batch with 0.80 probability.
+  6. The batch is shuffled
+
+  These are examples of the augmentation performed to create flipped, brightened and simulated shadow images:
+
+  ![alt](diagnostic_images/training_generator_augmented-6400.png)
+  ![alt](diagnostic_images/training_generator_augmented-48000.png)
 
   * Augmenting The Validation Data
     1. The full set of validation samples are shuffled
@@ -63,8 +104,6 @@ The model.py file contains the code for preprocessing images, augmenting the dat
     3. The batch is shuffled
 
   * The training model architecture is shown here:
-
-
 
 ### Model Architecture and Training Strategy
 
@@ -121,7 +160,13 @@ The model used can be summarized as follows:
   dense_4 (Dense)                  (None, 1)             11          dense_3[0][0]                    
 ```
 
-#### Training the Model
+## Training the Model
+
+I sent many cars into the lake during the making of this model!
+
+In the end after, many missteps and refinements, I am able to train a model either on my laptop or Amazon AWS EC2. After reading the training data and allowing for: filtering (removal of observation where throttle < 0.25), undersampling of 'straight' observations and over sampling of augmented data, I wound up with 110,206 observations. With augmentation, this number will increase by approximately 2.36 times (0.8 * (1.0 + 0.9 + 0.8) + 0.2 * (1.0)) per epoch.
+
+This is output from run on my MacBook Pro():
 
 ```
 ____________________________________________________________________________________________________
@@ -150,6 +195,10 @@ Epoch 10/10
 
 ```
 
+
+
+
+
 #### Training Loss
 
 The training and validation loss calculated after each epoch are pl0tted as follows:
@@ -158,36 +207,7 @@ The training and validation loss calculated after each epoch are pl0tted as foll
 
 Earlier in the process, when using less training data,I concluded that 10 epochs were sufficient. While still sufficient, a more recent run shows the number of epochs could be further reduced to 6.
 
-#### Creation of the Training Set & Training Process
 
-To capture good driving behavior, I first attempted to record two laps on the lake track using center lane driving. I found this hard to do with the keyboard or mouse controls.
-
-Since I found this difficult to do, I decided to modify the simulator so that I could capture training data with a gamepad controller. Due to immediate availability, I selected the Logitech F310.
-
-Once I established connectivity from the usb controller, I modified the simulator to map these inputs from the gamepad:
-
-
-| Control        | Function |
-| ------------- |:-------------:|
-| Left Stick (up/down)     | Throttle  |
-| Right Stick (left/right)     | Steering |
-| DPad (up/down)| Adjust max cruise speed|
-| X Button (blue) | Save this position    |
-| Y Button (yellow) | Teleport to saved location |
-| A Button (green) | cruise on/off |
-| B Button (red) | toggle recording |
-
-Once I enabled these improvements, the control was much better. As I was still debugging the model and running off the road, I enlisted the help of a 'stunt driver'. I asked my son to record a session since he's much more practiced with a gamepad!
-
-Here is an example of the modded sim in action:
-
-|Capturing Training Data|
-|:--------:|
-|[![alt](training-thumb640x480.png)]|
-[Link to YouTube Video](https://youtu.be/3y3MOZyYXRQ)
-
-
-I used this training data for training the model. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was Z as evidenced by ... I used an adam optimizer so that manually training the learning rate wasn't necessary.
 
 ## Testing
 
