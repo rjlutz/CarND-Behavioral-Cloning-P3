@@ -26,17 +26,17 @@ This project is submitted after considering the rubric published [here](https://
 
 My project includes the following files:
 * model.py containing the script to create and train the model
-* drive.py for driving the car in autonomous mode
+* drive.py for driving the car in autonomous mode (unchanged from the version provided)
 * model.h5 containing a trained convolution neural network
-* writeup_report.md summarizing the results
+* writeup_report.md which summarizes the results
 
 #### Creation of the Training Set & Training Process
 
 To capture good driving behavior, I first attempted to record two laps on the lake track using center lane driving. I found this hard to do with the keyboard or mouse controls.
 
-Since I found this difficult to do, I decided to modify the simulator so that I could capture training data with a gamepad controller. Due to immediate availability, I selected the Logitech F310.
+Since I found this difficult to do, I decided to modify the simulator so that I could capture training data with a gamepad controller. Due to availability, and the desire use a simple, wired USB device, I selected the Logitech F310.
 
-Once I established connectivity from the usb controller, I modified the simulator to map these inputs from the gamepad:
+Once I established connectivity from the USB controller, I modified the simulator to map these inputs from the gamepad:
 
 
 | Control        | Function |
@@ -49,30 +49,30 @@ Once I established connectivity from the usb controller, I modified the simulato
 | A Button (green) | cruise on/off |
 | B Button (red) | toggle recording |
 
-Once I enabled these improvements, the control was much better. As I was still debugging the model and running off the road, I enlisted the help of a 'stunt driver'. I asked my son to record a session since he's much more practiced with a gamepad!
+Once I enabled these improvements, the control was much better. As I was still debugging my model and still running off the road frequently, I enlisted the help of a 'stunt driver'. I asked my son to record a session, since he's much more practiced with a gamepad!
 
-Here is an example of the modified sim in action:
+Here is an example of the modified simulator uisng the modified controls:
 
 |Capturing Training Data|
 |:--------:|
 |[![alt](training-thumb640x480.png)]|
 [Link to YouTube Video](https://youtu.be/3y3MOZyYXRQ)
 
-My modified simulator code can be found [here](https://github.com/rjlutz/self-driving-car-sim)
+For those interested, my modified simulator code can be found [here](https://github.com/rjlutz/self-driving-car-sim)
 
 ## Data Pipeline
 
 The model.py file contains the code for preprocessing images, augmenting the data, training the model and saving the convolution neural network. The preprocessing steps and model description are described as follows.
 
 * Data Preprocessing Steps
-  1.  datasets are provided
-  2.  data are read from driving_log.csv for datasets
+  1.  datasets are provided for model.py's use
+  2.  data are read from driving_log.csv in each dataset
   3.  observations with little or no throttle are discarded
   4.  paths for left/center/right camera images are rewritten to use relative paths, for easy porting to Amazon AWS or other execution platforms
   5.  observations with straight steering angles are under-sampled by 20%
   6. observations with significant left or right steering angles are oversampled through duplication. Jitter is applied to the copies by perturbing the angles slightly
   7. data collected in problem areas (turns, bridge) are oversampled by repeating each four times
-  8. final observation set is shuffled
+  8. the final observation set is shuffled
 
 These are examples of the left, center and right images that are captured:
 
@@ -81,11 +81,11 @@ These are examples of the left, center and right images that are captured:
 
 * Data Subdivision
 
-  80% is retained for training and 20% is retained for validation. Data is not split for testing purposes as the tests will be conducted interactively in the simulator provided
+  80% is retained for training and 20% is retained for validation. Data is not split for testing purposes, as the tests will be conducted interactively in the  provided simulator
 
 * Augmenting The Training Data
 
-  A generator is used to extract batches of samples used in model training. The steps followed to build each batch are:
+  A python generator is used to extract batches of samples used in both model training and model validation. The steps followed to build each batch are:
   1. The full set of training samples are shuffled
   2. A left camera, right camera, or center camera image is selected randomly to represent each observation in the batch. Left and right images are joined by a +/- adjustment 0.2 to the steering angle, respectively. Center images are provided with the unchanged steering angle.
   3. The selected image is flipped and then added to the batch, with probability of addition of 0.90. The steering angle is negated and added along with the flipped image.
@@ -102,8 +102,6 @@ These are examples of the left, center and right images that are captured:
     1. The full set of validation samples are shuffled
     2. The center camera image is selected to represent an observation. The image is provided with the steering angle and added to the batch.
     3. The batch is shuffled
-
-  * The training model architecture is shown here:
 
 ### Model Architecture and Training Strategy
 
