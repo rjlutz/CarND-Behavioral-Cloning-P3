@@ -8,8 +8,8 @@ The goals / steps of this project are the following:
 * Use the simulator to collect data of good driving behavior
 * Build, a convolution neural network in Keras that predicts steering angles from images
 * Train and validate the model with a training and validation set
-* Test that the model successfully drives around track one without leaving the road
-* Summarize the results with a written report
+* Test that the model successfully drives around track one (the lake track) without leaving the road
+* Summarize the results with a written report (you are here!)
 
 ## Result
 
@@ -28,7 +28,7 @@ My project includes the following files:
 * model.py containing the script to create and train the model
 * drive.py for driving the car in autonomous mode (unchanged from the version provided)
 * model.h5 containing a trained convolution neural network
-* writeup_report.md which summarizes the results
+* writeup_report.md which summarizes the results (this report)
 
 #### Creation of the Training Set & Training Process
 
@@ -65,13 +65,13 @@ For those interested, my modified simulator code can be found [here](https://git
 The model.py file contains the code for preprocessing images, augmenting the data, training the model and saving the convolution neural network. The preprocessing steps and model description are described as follows.
 
 * Data Preprocessing Steps
-  1.  datasets are provided for model.py's use
+  1.  datasets are provided from the training sessions described above, for model.py's use
   2.  data are read from driving_log.csv in each dataset
   3.  observations with little or no throttle are discarded
   4.  paths for left/center/right camera images are rewritten to use relative paths, for easy porting to Amazon AWS or other execution platforms
   5.  observations with straight steering angles are under-sampled by 20%
   6. observations with significant left or right steering angles are oversampled through duplication. Jitter is applied to the copies by perturbing the angles slightly
-  7. data collected in problem areas (turns, bridge) are oversampled by repeating each four times
+  7. data collected in problem areas (turns, bridge) are oversampled by repeating each observation in these specialized sets four times
   8. the final observation set is shuffled
 
 These are examples of the left, center and right images that are captured:
@@ -81,11 +81,11 @@ These are examples of the left, center and right images that are captured:
 
 * Data Subdivision
 
-  80% is retained for training and 20% is retained for validation. Data is not split for testing purposes, as the tests will be conducted interactively in the  provided simulator
+  80% of the training data is retained for model training and the remaining 20% is retained for validation purposes. Data is not split for testing purposes, as the tests will be conducted interactively in the  provided simulator
 
-* Augmenting The Training Data
+* Augmenting The Training and Validation Data
 
-  A python generator is used to extract batches of samples used in both model training and model validation. The steps followed to build each batch are:
+  A python generator is used to extract batches of samples used in both model training and model validation. The steps followed to build each training batch are:
   1. The full set of training samples are shuffled
   2. A left camera, right camera, or center camera image is selected randomly to represent each observation in the batch. Left and right images are joined by a +/- adjustment 0.2 to the steering angle, respectively. Center images are provided with the unchanged steering angle.
   3. The selected image is flipped and then added to the batch, with probability of addition of 0.90. The steering angle is negated and added along with the flipped image.
@@ -98,34 +98,31 @@ These are examples of the left, center and right images that are captured:
   ![alt](diagnostic_images/training_generator_augmented-6400.png)
   ![alt](diagnostic_images/training_generator_augmented-48000.png)
 
-  * Augmenting The Validation Data
-    1. The full set of validation samples are shuffled
-    2. The center camera image is selected to represent an observation. The image is provided with the steering angle and added to the batch.
-    3. The batch is shuffled
+* Augmenting The Validation Data
+  1. The full set of validation samples are shuffled
+  2. The center camera image is selected to represent an observation. The image is provided with the steering angle and added to the batch.
+  3. The batch is shuffled
 
 ### Model Architecture and Training Strategy
-
-1. Model architecture employed
 
 My model consists of a convolution neural network with 5x5 and 3x3 filter sizes and depths between 24 and 64. (model.py lines 238-252). The model used is the NVIDIA model suggested in the course materials and more fully described [here](https://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf).
 
 The model includes ELU layers to introduce nonlinearity and increase training performance. The data is normalized in the model using a Keras lambda layer (code line 239).
 
-The model contain a dropout layers in order to reduce overfitting (model.py lines 247). In addition, the number of epochs was reduced to 10 prevent overfitting.
+The model contain a dropout layer in order to reduce overfitting (model.py lines 247). In addition, the number of epochs was reduced to 10 prevent overfitting. Another possbile reduction to six seems possible.
 
 The model was trained and validated on different data sets to ensure that the model was not overfitting (code lines 227-228 and line 256). The model was tested by running it through the simulator and ensuring that the vehicle could stay on the track.
 
 The model used an adam optimizer, with the learning rate tuned to 1.0e-4 (model.py line 252).
 
 Training data was chosen to keep the vehicle driving on the road. I used a combination of:
-  * center lane driving data provided with the project description
+  * center lane driving data provided with the project
   * center lane driving data captured by me, for driving in both directions around the track
-  multiple captures of recovering from the left and right sides of the road
+  * driving data from my stunt driver
+  * multiple captures of data observed while recovering from the left and right sides of the road
   * multiple passes of driving through the difficult areas, namely turns and the bridge area. These areas became evident as the car would leave the road in early trials.
 
-For details about how I created the training data, see the next section.
-
-The model used can be summarized as follows:
+The model used is summarized as follows:
 
 ```
   ________________________________________________________________________________________
@@ -162,9 +159,9 @@ The model used can be summarized as follows:
 
 I sent many cars into the lake during the making of this model!
 
-In the end after, many missteps and refinements, I am able to train a model either on my laptop or Amazon AWS EC2. After reading the training data and allowing for: filtering (removal of observation where throttle < 0.25), undersampling of 'straight' observations and over sampling of augmented data, I wound up with 110,206 observations. With augmentation, this number will increase by approximately 2.36 times (0.8 * (1.0 + 0.9 + 0.8) + 0.2 * (1.0)) per epoch.
+In the end after, many missteps and refinements, I am able to train a model either on my laptop or Amazon AWS EC2. After reading the training data and allowing for: filtering (removal of observation where throttle < 0.25), under-sampling of 'straight' observations and over-sampling of augmented data, I wound up with 110,206 observations. With augmentation, this number will increase by approximately 2.36 times (0.8 * (1.0 + 0.9 + 0.8) + 0.2 * (1.0)) per epoch.
 
-This is output from run on my MacBook Pro():
+This is output from run on my MacBook Pro(4x2.9GHz i7 with turbo-boost):
 
 ```
 ____________________________________________________________________________________________________
@@ -193,27 +190,24 @@ Epoch 10/10
 
 ```
 
-
-
-
+I also used Amazon EC2 for many intermediate tests. I was successful in running on   g2.2xlarge and g2.8xlarge configurations. I atarted instances on the spot market which helped me control expenses. There's always a risk with the spot market though; I was booted twice while working through this project.
 
 #### Training Loss
 
-The training and validation loss calculated after each epoch are pl0tted as follows:
+The training and validation loss calculated after each epoch are plotted as follows:
 
 ![alt](training_loss.png)
 
-Earlier in the process, when using less training data,I concluded that 10 epochs were sufficient. While still sufficient, a more recent run shows the number of epochs could be further reduced to 6.
-
+Earlier in the process, when using less training data,I concluded that 10 epochs were sufficient. While still sufficient, the most recent run shows the number of epochs could be further reduced to 6.
 
 
 ## Testing
 
-The project was tested using the Udacity-provided simulator and the provided drive.py file. The car can be driven autonomously around the track by executing
+The project was tested using the provided simulator and the unchanged drive.py file. The car is driven autonomously around the track by executing
 ```sh
 python drive.py model.h5
 ```
-The final step was to run the simulator to see how well the car was driving around track one. At the end of the process, the vehicle is able to drive autonomously around the track without leaving the road.
+The final step was to run the simulator to see how well the car was driving around the lake track. At the end of the process, the vehicle is able to drive autonomously around the track without leaving the road.
 
 A video of a test run in the simulator is provided at the very top of this report.
 
