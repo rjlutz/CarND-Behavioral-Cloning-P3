@@ -1,6 +1,8 @@
 
 # Behavioral Cloning Project P3
 
+# TODO add L/C/R and flipped/bright/shadow
+
 This project was developed to fulfill Project 3 (Term 1) of the Udacity Self-Driving Car Engineer Nanodegree Program
 
 The goals / steps of this project are the following:
@@ -201,11 +203,12 @@ The jungle course was attempted with the final model, however, it was found that
 
 ## Resources Used and/or Consulted
 
-* [Amazon Web Services (AWS EC2)](http://aws.amazon.com)
+* [Paul Heraty's Behavioral Cloning Cheatsheet](https://slack-files.com/T2HQV035L-F50B85JSX-7d8737aeeb)
 * [Learning human driving behavior using NVIDIA’s neural network model and image augmentation.](https://chatbotslife.com/learning-human-driving-behavior-using-nvidias-neural-network-model-and-image-augmentation-80399360efee)
+* [Exponential Linear Units (ELU) for Deep Network Learning]( https://www.linkedin.com/pulse/exponential-linear-units-elu-deep-network-learning-martin-heusel)
+* [Amazon Web Services (AWS EC2)](http://aws.amazon.com)
 * https://github.com/priya-dwivedi/CarND
 * https://github.com/ericlavigne/CarND-Behavioral-Cloning
 * https://github.com/naokishibuya/car-behavioral-cloning
-* [Exponential Linear Units (ELU) for Deep Network Learning]( https://www.linkedin.com/pulse/exponential-linear-units-elu-deep-network-learning-martin-heusel)
 * [Python 3.6.3 Documentation](https://docs.python.org/3/)
 * [Keras Documentation](https://keras.io)
