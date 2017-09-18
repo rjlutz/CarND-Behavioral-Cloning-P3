@@ -62,7 +62,7 @@ fnames = []
 fnames.extend(['./data/lake-dataCCW'])
 fnames.extend(['./data/data-CCW-AJL'])
 fnames.extend(['./data/lake-dataCW'])
-fnames.extend(['./data/lake-dataCCW'])
+fnames.extend(['./data/data-provided'])          ## provided with the project
 
 ## add and amplify dirt road and curve data, adding some minor jitter each time
 focused = []
@@ -159,7 +159,8 @@ def train_generator(samples, batch_size=batch_size):
                 images.append(image)
                 angles.append(angle)
 
-                skip = 100 ## interval
+                # diagnostic images
+                skip = 100 ## interval, skip this many batches before printing
                 if offset % skip == 0 and i == 0:
                     plotImageTrio(center_image, left_image, right_image,
                     './diagnostic_images/training_generator_LRC_{0:.0f}.png'.format(offset),
@@ -186,18 +187,16 @@ def train_generator(samples, batch_size=batch_size):
                 mask = np.zeros_like(image[:, :, 1])
                 mask[(ym - y1) * (x2 - x1) - (y2 - y1) * (xm - x1) > 0] = 1
 
-                # choose which side should have shadow and adjust saturation
-                cond = mask == np.random.randint(2)
+                coin = mask == np.random.randint(2) # choose which side should have shadow and adjust saturation
                 s_ratio = np.random.uniform(low=0.2, high=0.5)
-
-                # adjust Saturation in HLS(Hue, Light, Saturation)
-                hls = cv2.cvtColor(image, cv2.COLOR_RGB2HLS)
-                hls[:, :, 1][cond] = hls[:, :, 1][cond] * s_ratio
+                hls = cv2.cvtColor(image, cv2.COLOR_RGB2HLS) # adjust Saturation in HLS(Hue, Light, Saturation)
+                hls[:, :, 1][coin] = hls[:, :, 1][coin] * s_ratio
                 shadow_image = cv2.cvtColor(hls, cv2.COLOR_HLS2RGB)
                 if random.random() <= 0.80:
                     images.append(shadow_image)
                     angles.append(angle)
 
+                # diagnostic images
                 if offset % skip == 0 and i == 0:
                     plotImageTrio(flipped_image, bright_image, shadow_image,
                                './diagnostic_images/training_generator_augmented-{0:.0f}.png'.format(offset),

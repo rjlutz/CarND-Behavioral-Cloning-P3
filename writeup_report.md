@@ -10,6 +10,13 @@ The goals / steps of this project are the following:
 * Test that the model successfully drives around track one without leaving the road
 * Summarize the results with a written report
 
+## Result
+
+|Screen Capture|
+|:--------:|
+|[![alt](video-thumb320x160.png)|
+[Link to YouTube Video](https://youtu.be/m50T1rnkuOg)
+
 ## Rubric Points
 This project is submitted after considering the rubric published [here](https://review.udacity.com/#!/rubrics/432/view).
 
@@ -26,6 +33,8 @@ My project includes the following files:
 
 The model.py file contains the code for preprocessing images, augmenting the data, training the model and saving the convolution neural network. The preprocessing steps and model description are described as follows.
 
+  * Data collection
+    After the collection process, I had X number of data points. I then preprocessed this data by ...
   * Data Preprocessing Steps
     1.  datasets are provided
     2.  data are read from driving_log.csv for datasets
@@ -52,6 +61,32 @@ The model.py file contains the code for preprocessing images, augmenting the dat
     3. The batch is shuffled
 
   * The training model architecture is shown here:
+
+
+
+### Model Architecture and Training Strategy
+
+1. Model architecture employed
+
+My model consists of a convolution neural network with 5x5 and 3x3 filter sizes and depths between 24 and 64. (model.py lines 238-252). The model used is the NVIDIA model suggested in the course materials and more fully described [here](https://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf).
+
+The model includes ELU layers to introduce nonlinearity and increase training performance. The data is normalized in the model using a Keras lambda layer (code line 239).
+
+The model contain a dropout layers in order to reduce overfitting (model.py lines 247). In addition, the number of epochs was reduced to 10 prevent overfitting.
+
+The model was trained and validated on different data sets to ensure that the model was not overfitting (code lines 227-228 and line 256). The model was tested by running it through the simulator and ensuring that the vehicle could stay on the track.
+
+The model used an adam optimizer, with the learning rate tuned to 1.0e-4 (model.py line 252).
+
+Training data was chosen to keep the vehicle driving on the road. I used a combination of:
+  * center lane driving data provided with the project description
+  * center lane driving data captured by me, for driving in both directions around the track
+  multiple captures of recovering from the left and right sides of the road
+  * multiple passes of driving through the difficult areas, namely turns and the bridge area. These areas became evident as the car would leave the road in early trials.
+
+For details about how I created the training data, see the next section.
+
+The model used can be summarized as follows:
 
 ```
   ________________________________________________________________________________________
@@ -84,77 +119,71 @@ The model.py file contains the code for preprocessing images, augmenting the dat
   dense_4 (Dense)                  (None, 1)             11          dense_3[0][0]                    
 ```
 
-### Model Architecture and Training Strategy
-
-1. Model architecture employed
-
-My model consists of a convolution neural network with 5x5 and 3x3 filter sizes and depths between 24 and 64. (model.py lines 238-252). The model used is the NVIDIA model suggested in the course materials and more fully described [here](https://images.nvidia.com/content/tegra/automotive/images/2016/solutions/pdf/end-to-end-dl-using-px.pdf).
-
-The model includes ELU layers to introduce nonlinearity and increase training performance. The data is normalized in the model using a Keras lambda layer (code line 239).
-
-The model contain a dropout layers in order to reduce overfitting (model.py lines 247). In addition, the number of epochs was reduced to 10 prevent overfitting.
-
-The model was trained and validated on different data sets to ensure that the model was not overfitting (code lines 227-228 and line 256). The model was tested by running it through the simulator and ensuring that the vehicle could stay on the track.
-
-The model used an adam optimizer, with the learning rate tuned to 1.0e-4 (model.py line 252).
-
-Training data was chosen to keep the vehicle driving on the road. I used a combination of:
-  * center lane driving data provided with the project description
-  * center lane driving data captured by me, for driving in both directions around the track
-  multiple captures of recovering from the left and right sides of the road
-  * multiple passes of driving through the difficult areas, namely turns and the bridge area. These areas became evident as the car would leave the road in early trials.
-
-For details about how I created the training data, see the next section.
-
-The model used can be summarized as follows:
+#### Training the Model
 
 ```
 ____________________________________________________________________________________________________
 Epoch 1/10
-20360/20224 [==============================] - 251s - loss: 0.0663 - val_loss: 0.0147
+20401/20224 [==============================] - 261s - loss: 0.0572 - val_loss: 0.0143
 Epoch 2/10
-20385/20224 [==============================] - 250s - loss: 0.0314 - val_loss: 0.0134
+20335/20224 [==============================] - 257s - loss: 0.0318 - val_loss: 0.0118
 Epoch 3/10
-20378/20224 [==============================] - 249s - loss: 0.0266 - val_loss: 0.0129
+20335/20224 [==============================] - 428s - loss: 0.0270 - val_loss: 0.0111
 Epoch 4/10
-20302/20224 [==============================] - 246s - loss: 0.0243 - val_loss: 0.0105
+20376/20224 [==============================] - 239s - loss: 0.0248 - val_loss: 0.0122
 Epoch 5/10
-20311/20224 [==============================] - 247s - loss: 0.0232 - val_loss: 0.0108
+20393/20224 [==============================] - 244s - loss: 0.0232 - val_loss: 0.0111
 Epoch 6/10
-20342/20224 [==============================] - 259s - loss: 0.0218 - val_loss: 0.0098
+20336/20224 [==============================] - 25780s - loss: 0.0220 - val_loss: 0.0098
 Epoch 7/10
-20306/20224 [==============================] - 254s - loss: 0.0215 - val_loss: 0.0114
+20385/20224 [==============================] - 461s - loss: 0.0223 - val_loss: 0.0105
 Epoch 8/10
-20363/20224 [==============================] - 237s - loss: 0.0216 - val_loss: 0.0115
+20431/20224 [==============================] - 266s - loss: 0.0214 - val_loss: 0.0110
 Epoch 9/10
-20369/20224 [==============================] - 235s - loss: 0.0200 - val_loss: 0.0112
+20350/20224 [==============================] - 273s - loss: 0.0209 - val_loss: 0.0113
 Epoch 10/10
-20370/20224 [==============================] - 261s - loss: 0.0196 - val_loss: 0.0100
+20343/20224 [==============================] - 273s - loss: 0.0206 - val_loss: 0.0118
+
+* note that my laptop went to sleep during epoch 6 (overnight!)
 
 ```
 
+#### Training Loss
+
+The training and validation loss calculated after each epoch are pl0tted as follows:
+
+![alt](training_loss.png)
+
+Earlier in the process, when using less training data,I concluded that 10 epochs were sufficient. While still sufficient, a more recent run shows the number of epochs could be further reduced to 6.
+
 #### Creation of the Training Set & Training Process
 
-To capture good driving behavior, I first recorded two laps on track one using center lane driving. Here is an example image of center lane driving:
+To capture good driving behavior, I first attempted to record two laps on the lake track using center lane driving. I found this hard to do with the keyboard or mouse controls.
 
-[![youtube link](https://img.youtube.com/vi/3y3MOZyYXRQ)/0.jpg)](https://youtu.be/3y3MOZyYXRQ)
+Since I found this difficult to do, I decided to modify the simulator so that I could capture training data with a gamepad controller. Due to immediate availability, I selected the Logitech F310.
 
-I then recorded the vehicle recovering from the left side and right sides of the road back to center so that the vehicle would learn to .... These images show what a recovery looks like starting from ... :
+Once I established connectivity from the usb controller, I modified the simulator to map these inputs from the gamepad:
 
-![alt text][image3]
-![alt text][image4]
-![alt text][image5]
 
-Then I repeated this process on track two in order to get more data points.
+| Control        | Function |
+| ------------- |:-------------:|
+| Left Stick (up/down)     | Throttle  |
+| Right Stick (left/right)     | Steering |
+| DPad (up/down)| Adjust max cruise speed|
+| X Button (blue) | Save this position    |
+| Y Button (yellow) | Teleport to saved location |
+| A Button (green) | cruise on/off |
+| B Button (red) | toggle recording |
 
-To augment the data sat, I also flipped images and angles thinking that this would ... For example, here is an image that has then been flipped:
+Once I enabled these improvements, the control was much better. As I was still debugging the model and running off the road, I enlisted the help of a 'stunt driver'. I asked my son to record a session since he's much more practiced with a gamepad!
 
-![alt text][image6]
-![alt text][image7]
+Here is an example of the modded sim in action:
 
-Etc ....
+|Capturing Training Data|
+|:--------:|
+|[![alt](training-thumb640x480.png)]|
+[Link to YouTube Video](https://youtu.be/3y3MOZyYXRQ)
 
-After the collection process, I had X number of data points. I then preprocessed this data by ...
 
 I used this training data for training the model. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was Z as evidenced by ... I used an adam optimizer so that manually training the learning rate wasn't necessary.
 
@@ -166,17 +195,17 @@ python drive.py model.h5
 ```
 The final step was to run the simulator to see how well the car was driving around track one. At the end of the process, the vehicle is able to drive autonomously around the track without leaving the road.
 
-This is a video of a test run in the simulator:
-
-[![youtube link](https://img.youtube.com/vi/m50T1rnkuOg)/0.jpg)](https://youtu.be/m50T1rnkuOg)
+A video of a test run in the simulator is provided at the very top of this report.
 
 The jungle course was attempted with the final model, however, it was found that this model would not generalize to work on the jungle track. Clearly, more data, a better model, and/or augmentation would be required.
 
-## Resources Consulted
+## Resources Used and/or Consulted
 
-* Amazon Web Services (AWS EC2)
-* https://github.com/priya-dwivedi/CarND/blob/master/CarND-Behavior-Cloning-P3/model.py#L85
-* https://github.com/ericlavigne/CarND-Behavioral-Cloning/blob/fab0ebe8c6ee6e44d9aa658ce9f99d11ef180599/model.py
+* [Amazon Web Services (AWS EC2)](http://aws.amazon.com)
+* [Learning human driving behavior using NVIDIA’s neural network model and image augmentation.](https://chatbotslife.com/learning-human-driving-behavior-using-nvidias-neural-network-model-and-image-augmentation-80399360efee)
+* https://github.com/priya-dwivedi/CarND
+* https://github.com/ericlavigne/CarND-Behavioral-Cloning
 * https://github.com/naokishibuya/car-behavioral-cloning
-* https://www.linkedin.com/pulse/exponential-linear-units-elu-deep-network-learning-martin-heusel/
-* documents at https://keras.io/
+* [Exponential Linear Units (ELU) for Deep Network Learning]( https://www.linkedin.com/pulse/exponential-linear-units-elu-deep-network-learning-martin-heusel)
+* [Python 3.6.3 Documentation](https://docs.python.org/3/)
+* [Keras Documentation](https://keras.io)
